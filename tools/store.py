@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 import re
 import datetime as dt
+import numpy as np
 
 
 def get_decolar_text(origem, destino, ida, volta):
@@ -56,7 +57,17 @@ def process_decolar_text(decolar_text):
 	for linha in linhas:
 		preco, idas, voltas = process_decolar_line(linha)
 
+		# colar idas e voltas possíveis
+		for ida in idas:
+			for volta in voltas:
+				row = [preco] + ida + volta
+				dados_decolar.append(row)
+	return np.array(dados_decolar)
+
+
+
+
 wd = webdriver.Firefox()
 
 texto = get_decolar_text('BSB', 'VCP', '2016-09-08', '2016-10-08')
-process_decolar_text(texto)
+print(process_decolar_text(texto))
