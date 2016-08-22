@@ -17,12 +17,34 @@ def get_decolar_text(origem, destino, ida, volta):
 		return text
 
 
+def process_trechos(trechos):
+	horas = trechos.split('Detalhe')[:-1] # separa idas possíveis
+	horas_limpas = []
+
+	for h in horas:
+		hora = re.findall(r'\d\d:\d\d', h)
+		sai = int(hora[0][0:2])*60 #+ int(hora[0][3:])
+		chega = int(hora[1][0:2])*60 + int(hora[1][3:])
+		horas_limpas.append([sai, chega])
+	
+	return horas_limpas
+
+
 def process_decolar_line(linha):
 
 	preco = re.findall(r'R\$ ?\d?\d?\.?\d\d\d', linha)[0][3:]
 	preco = int(re.sub(r'\.', '', preco))
 
-	print(preco)
+	p = re.compile(r'[A-Z][a-z][a-z] \d?\d(.+?)VOLTA', flags=re.DOTALL)
+	ida = p.findall(linha)[0]
+	idas_limpas = process_trechos(ida)
+
+	p = re.compile(r'VOLTA(.+?)Preço por adulto', flags=re.DOTALL)
+	volta = p.findall(linha)[0]
+	voltas_limpas = process_trechos(volta)
+
+	return preco, idas_limpas, voltas_limpas
+
 
 
 def process_decolar_text(decolar_text):
@@ -32,7 +54,7 @@ def process_decolar_text(decolar_text):
 	linhas = decolar_text.split('IDA\n')[1:]
 	dados_decolar = []
 	for linha in linhas:
-		process_decolar_line(linha)
+		preco, idas, voltas = process_decolar_line(linha)
 
 wd = webdriver.Firefox()
 
