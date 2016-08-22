@@ -4,6 +4,7 @@ import time
 import re
 import datetime as dt
 import numpy as np
+import pandas as pd
 
 
 def get_decolar_text(origem, destino, ida, volta):
@@ -47,7 +48,6 @@ def process_decolar_line(linha):
 	return preco, idas_limpas, voltas_limpas
 
 
-
 def process_decolar_text(decolar_text):
 	if decolar_text == None:
 		return decolar_text
@@ -65,9 +65,41 @@ def process_decolar_text(decolar_text):
 	return np.array(dados_decolar)
 
 
+def add_dateCol(date_touple, df):
+	df_list = [df]
+	for i in date_touple: # data da ida
+		df_list.append(pd.DataFrame(np.repeat(i, len(df.index))))
+	return	pd.concat(df_list, axis = 1)
+
+def scrape_decolar(origem, destino, ida, volta):
+	texto = get_decolar_text(origem, destino, ida, volta)
+	
+	dados_df = pd.DataFrame(process_decolar_text(texto))
+
+	dados_df = add_dateCol(time.strptime(ida, '%Y-%m-%d')[:3],
+		dados_df)
+
+	dados_df = add_dateCol(time.strptime(volta, '%Y-%m-%d')[:3],
+		dados_df)
+
+	dados_df = add_dateCol(time.localtime(time.time())[:5],
+		dados_df)
+
+	origem_df = pd.DataFrame(np.repeat(origem, len(dados_df.index)))
+	destino_df = pd.DataFrame(np.repeat(destino, len(dados_df.index)))
+
+	dados_df = pd.concat([dados_df, origem_df, destino_df], axis = 1)
+
+	dados_df.columns = ('preco', 'sai_ida', 'chega_ida', 'sai_volta',
+		'chega_volta', 'ano_ida', 'mes_ida', 'dia_ida', 'ano_volta',
+		 'mes_volta', 'dia_volta', 'ano_coleta', 'mes_coleta', 'dia_coleta', 
+		 'hora_coleta', 'min_coleta', 'origem', 'destino') 
+ 
+	return dados_df
+	
 
 
 wd = webdriver.Firefox()
 
-texto = get_decolar_text('BSB', 'VCP', '2016-09-08', '2016-10-08')
-print(process_decolar_text(texto))
+coleta_df = scrape_decolar('BSB', 'VCP', '2016-09-08', '2016-10-08')
+
