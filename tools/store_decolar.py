@@ -22,10 +22,11 @@ def get_decolar_text(origem, destino, ida, volta):
 def process_trechos(trechos):
 	horas = trechos.split('Detalhe')[:-1] # separa idas possíveis
 	horas_limpas = []
+	pe
 
 	for h in horas:
 		hora = re.findall(r'\d\d:\d\d', h)
-		sai = int(hora[0][0:2])*60 #+ int(hora[0][3:])
+		sai = int(hora[0][0:2])*60 + int(hora[0][3:])
 		chega = int(hora[1][0:2])*60 + int(hora[1][3:])
 		horas_limpas.append([sai, chega])
 	
@@ -116,11 +117,18 @@ class vgns():
 		while comeco < fim:
 			date_list.append(str(comeco)[:10])
 			comeco = comeco + dt.timedelta(days = by)
+		
+		id_origens = ''.join(origens)
+		id_destinos = ''.join(destinos)
+		id_comeco = re.sub(r'\W+', '', str(comeco)[:17])
+		id_fim = re.sub(r'\W+', '', str(fim)[:17])
+		identidade = '-'.join([id_origens, id_destinos, id_comeco, id_fim])
 			
 		self.origens = origens
 		self.destinos = destinos
 		self.idas = date_list
 		self.voltas = date_list
+		self.identidade = identidade
 
 	def __len__(self):
 		return len(self.idas)
@@ -161,7 +169,6 @@ comeco = dt.datetime.today() #+ dt.timedelta(days = 10)
 fim = comeco + dt.timedelta(days = 20)
 
 viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
-print(viagens.idas, viagens.voltas)
 
 df = scrape_vgsn_decolar(viagens)
 
