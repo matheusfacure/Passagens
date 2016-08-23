@@ -98,8 +98,62 @@ def scrape_decolar(origem, destino, ida, volta):
 	return dados_df
 	
 
+class vgns():
+	""" 
+
+	origem, destino, comeco , fim, by = 3
+	origems e destinos devem ser siglas oficiais de aeroportos
+	comeco e fim devem ser objetos datetime
+	by é o intervalo de dias de criação de viagens
+
+	"""
+	def __init__(self, origens, destinos, comeco , fim, by = 3):
+		
+		date_list = [str(comeco)[:10]]
+		for dia in range(0,(fim - comeco).days):
+			date_list.append(str(comeco + dt.timedelta(days = by))[:10])
+			comeco = comeco + dt.timedelta(days = by)
+		self.origens = origens
+		self.destinos = destinos
+		self.idas = date_list
+		self.voltas = date_list
+
+	def __len__(self):
+		return len(self.idas)
+
+
+def scrape_vgsn_decolar(vgns):
+	df_list = []
+	for origem in vgns.origens:
+		for destino in vgns.destinos:
+			for ida in vgns.idas:
+				for volta in vgns.voltas:
+
+					ida_tm = time.strptime(ida, "%Y-%m-%d")
+					volta_tm = time.strptime(volta, "%Y-%m-%d")
+					if ida_tm > volta_tm:
+						continue
+
+					if origem == destino:
+						continue
+
+					print(origem, destino, ida, volta)
+					#df_list.append(scrape_decolar(origem, destino, ida, volta))
+					
+
+	print(pd.concat(df_list))
+		
+
 
 wd = webdriver.Firefox()
 
-coleta_df = scrape_decolar('BSB', 'VCP', '2016-09-08', '2016-10-08')
+comeco = dt.datetime.today() + dt.timedelta(days = 10)
+fim = comeco + dt.timedelta(days = 10)
+print(comeco, fim)
+
+viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
+
+scrape_vgsn_decolar(viagens)
+
+
 
