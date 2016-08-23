@@ -33,11 +33,10 @@ def process_trechos(trechos):
 
 
 def process_decolar_line(linha):
-
 	preco = re.findall(r'R\$ ?\d?\d?\.?\d\d\d', linha)[0][3:]
 	preco = int(re.sub(r'\.', '', preco))
 
-	p = re.compile(r'[A-Z][a-z][a-z] \d?\d(.+?)VOLTA', flags=re.DOTALL)
+	p = re.compile(r'[A-Z].[a-z] \d?\d(.+?)VOLTA', flags = re.DOTALL)
 	ida = p.findall(linha)[0]
 	idas_limpas = process_trechos(ida)
 
@@ -143,7 +142,11 @@ def scrape_vgsn_decolar(vgns):
 						continue
 
 					print('Coletando: ', origem, destino, ida, volta)
-					df = scrape_decolar(origem, destino, ida, volta)
+					try:
+						df = scrape_decolar(origem, destino, ida, volta)
+					except:
+						print('Erro ao Coletar: ', origem, destino, ida, volta)
+						
 					
 					if df is None:
 						continue
@@ -160,7 +163,6 @@ fim = comeco + dt.timedelta(days = 20)
 viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
 print(viagens.idas, viagens.voltas)
 
-scrape_vgsn_decolar(viagens)
-
+df = scrape_vgsn_decolar(viagens)
 
 
