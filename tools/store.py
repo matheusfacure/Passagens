@@ -49,7 +49,7 @@ def process_decolar_line(linha):
 
 
 def process_decolar_text(decolar_text):
-	if decolar_text == None:
+	if decolar_text is None:
 		return decolar_text
 
 	linhas = decolar_text.split('IDA\n')[1:]
@@ -71,8 +71,12 @@ def add_dateCol(date_touple, df):
 		df_list.append(pd.DataFrame(np.repeat(i, len(df.index))))
 	return	pd.concat(df_list, axis = 1)
 
+
 def scrape_decolar(origem, destino, ida, volta):
+
 	texto = get_decolar_text(origem, destino, ida, volta)
+	if texto is None:
+		return texto
 	
 	dados_df = pd.DataFrame(process_decolar_text(texto))
 
@@ -109,10 +113,11 @@ class vgns():
 	"""
 	def __init__(self, origens, destinos, comeco , fim, by = 3):
 		
-		date_list = [str(comeco)[:10]]
-		for dia in range(0,(fim - comeco).days):
-			date_list.append(str(comeco + dt.timedelta(days = by))[:10])
+		date_list = []
+		while comeco < fim:
+			date_list.append(str(comeco)[:10])
 			comeco = comeco + dt.timedelta(days = by)
+			
 		self.origens = origens
 		self.destinos = destinos
 		self.idas = date_list
@@ -137,21 +142,23 @@ def scrape_vgsn_decolar(vgns):
 					if origem == destino:
 						continue
 
-					print(origem, destino, ida, volta)
-					#df_list.append(scrape_decolar(origem, destino, ida, volta))
+					print('Coletando: ', origem, destino, ida, volta)
+					df = scrape_decolar(origem, destino, ida, volta)
 					
+					if df is None:
+						continue
+
+					df_list.append(df) 
 
 	print(pd.concat(df_list))
 		
-
-
 wd = webdriver.Firefox()
 
-comeco = dt.datetime.today() + dt.timedelta(days = 10)
-fim = comeco + dt.timedelta(days = 10)
-print(comeco, fim)
+comeco = dt.datetime.today() #+ dt.timedelta(days = 10)
+fim = comeco + dt.timedelta(days = 20)
 
 viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
+print(viagens.idas, viagens.voltas)
 
 scrape_vgsn_decolar(viagens)
 
