@@ -166,7 +166,7 @@ def scrape_vgsn_decolar(vgns):
 
 					df_list.append(df) 
 
-	return pd.concat(df_list)
+	return pd.concat(df_list, ignore_index = True)
 		
 wd = webdriver.Firefox()
 
