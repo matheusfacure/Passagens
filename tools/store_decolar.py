@@ -24,10 +24,14 @@ def process_trechos(trechos):
 	horas_limpas = []
 
 	for h in horas:
+		try:
+			paradas = int(re.findall(r'\d paradas', h)[0][0])
+		except:
+			paradas = 0
 		hora = re.findall(r'\d\d:\d\d', h)
 		sai = int(hora[0][0:2])*60 + int(hora[0][3:])
 		chega = int(hora[1][0:2])*60 + int(hora[1][3:])
-		horas_limpas.append([sai, chega])
+		horas_limpas.append([paradas, sai, chega])
 	
 	return horas_limpas
 
@@ -95,10 +99,11 @@ def scrape_decolar(origem, destino, ida, volta):
 
 	dados_df = pd.concat([dados_df, origem_df, destino_df], axis = 1)
 
-	dados_df.columns = ('preco', 'companhia', 'sai_ida', 'chega_ida',
-		'sai_volta', 'chega_volta', 'ano_ida', 'mes_ida', 'dia_ida',
-		'ano_volta', 'mes_volta', 'dia_volta', 'ano_coleta', 'mes_coleta',
-		'dia_coleta', 'hora_coleta', 'min_coleta', 'origem', 'destino') 
+	dados_df.columns = ('preco', 'companhia', 'paradas_ida', 'sai_ida',
+		'chega_ida', 'paradas_volta', 'sai_volta', 'chega_volta', 'ano_ida',
+		'mes_ida', 'dia_ida', 'ano_volta', 'mes_volta', 'dia_volta',
+		'ano_coleta', 'mes_coleta', 'dia_coleta', 'hora_coleta', 'min_coleta',
+		'origem', 'destino') 
  
 	return dados_df
 	
@@ -173,5 +178,5 @@ viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
 
 #df = scrape_vgsn_decolar(viagens)
 
-df = scrape_decolar('SAO', 'GIG', '2016-09-07', '2016-09-17')
+df = scrape_decolar('SAO', 'FEN', '2016-09-07', '2016-09-17')
 print(df)
