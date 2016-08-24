@@ -28,10 +28,11 @@ def process_trechos(trechos):
 			paradas = int(re.findall(r'\d paradas', h)[0][0])
 		except:
 			paradas = 0
+		companhia = re.findall(r'Avianca|Tam|Gol|Azul', h)[0]
 		hora = re.findall(r'\d\d:\d\d', h)
 		sai = int(hora[0][0:2])*60 + int(hora[0][3:])
 		chega = int(hora[1][0:2])*60 + int(hora[1][3:])
-		horas_limpas.append([paradas, sai, chega])
+		horas_limpas.append([companhia, paradas, sai, chega])
 	
 	return horas_limpas
 
@@ -39,8 +40,6 @@ def process_trechos(trechos):
 def process_decolar_line(linha):
 	preco = re.findall(r'R\$ ?\d?\d?\.?\d\d\d', linha)[0][3:]
 	preco = int(re.sub(r'\.', '', preco))
-
-	companhia = re.findall(r'Avianca|Tam|Gol|Azul', linha)[0]
 
 	p = re.compile(r'[A-Z].[a-z] \d?\d(.+?)VOLTA', flags = re.DOTALL)
 	ida = p.findall(linha)[0]
@@ -50,7 +49,7 @@ def process_decolar_line(linha):
 	volta = p.findall(linha)[0]
 	voltas_limpas = process_trechos(volta)
 
-	return preco, companhia, idas_limpas, voltas_limpas
+	return preco, idas_limpas, voltas_limpas
 
 
 def process_decolar_text(decolar_text):
@@ -60,12 +59,12 @@ def process_decolar_text(decolar_text):
 	linhas = decolar_text.split('IDA\n')[1:]
 	dados_decolar = []
 	for linha in linhas:
-		preco, companhia, idas, voltas = process_decolar_line(linha)
+		preco, idas, voltas = process_decolar_line(linha)
 
 		# colar idas e voltas possíveis
 		for ida in idas:
 			for volta in voltas:
-				row = [preco] + [companhia] + ida + volta
+				row = [preco] + ida + volta
 				dados_decolar.append(row)
 	return np.array(dados_decolar)
 
@@ -99,8 +98,8 @@ def scrape_decolar(origem, destino, ida, volta):
 
 	dados_df = pd.concat([dados_df, origem_df, destino_df], axis = 1)
 
-	dados_df.columns = ('preco', 'companhia', 'paradas_ida', 'sai_ida',
-		'chega_ida', 'paradas_volta', 'sai_volta', 'chega_volta', 'ano_ida',
+	dados_df.columns = ('preco', 'comp_ida', 'paradas_ida', 'sai_ida',
+		'chega_ida', 'comp_volta', 'paradas_volta', 'sai_volta', 'chega_volta', 'ano_ida',
 		'mes_ida', 'dia_ida', 'ano_volta', 'mes_volta', 'dia_volta',
 		'ano_coleta', 'mes_coleta', 'dia_coleta', 'hora_coleta', 'min_coleta',
 		'origem', 'destino') 
