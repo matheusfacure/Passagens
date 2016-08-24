@@ -170,12 +170,12 @@ def scrape_vgsn_decolar(vgns):
 		
 wd = webdriver.Firefox()
 
-comeco = dt.datetime.today() #+ dt.timedelta(days = 10)
+comeco = dt.datetime.today() + dt.timedelta(days = 1)
 fim = comeco + dt.timedelta(days = 20)
-
 viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
+df = scrape_vgsn_decolar(viagens)
 
-#df = scrape_vgsn_decolar(viagens)
+wd.close()
 
-df = scrape_decolar('SAO', 'FEN', '2016-09-07', '2016-09-17')
-print(df)
+file = '../data/' + viagens.identidade + '.csv'
+df.to_csv(file, sep = ';', date_format = '%Y', index = True)
