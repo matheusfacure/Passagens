@@ -22,7 +22,6 @@ def get_decolar_text(origem, destino, ida, volta):
 def process_trechos(trechos):
 	horas = trechos.split('Detalhe')[:-1] # separa idas possíveis
 	horas_limpas = []
-	pe
 
 	for h in horas:
 		hora = re.findall(r'\d\d:\d\d', h)
@@ -37,6 +36,8 @@ def process_decolar_line(linha):
 	preco = re.findall(r'R\$ ?\d?\d?\.?\d\d\d', linha)[0][3:]
 	preco = int(re.sub(r'\.', '', preco))
 
+	companhia = re.findall(r'Avianca|Tam|Gol|Azul', linha)[0]
+
 	p = re.compile(r'[A-Z].[a-z] \d?\d(.+?)VOLTA', flags = re.DOTALL)
 	ida = p.findall(linha)[0]
 	idas_limpas = process_trechos(ida)
@@ -45,7 +46,7 @@ def process_decolar_line(linha):
 	volta = p.findall(linha)[0]
 	voltas_limpas = process_trechos(volta)
 
-	return preco, idas_limpas, voltas_limpas
+	return preco, companhia, idas_limpas, voltas_limpas
 
 
 def process_decolar_text(decolar_text):
@@ -55,12 +56,12 @@ def process_decolar_text(decolar_text):
 	linhas = decolar_text.split('IDA\n')[1:]
 	dados_decolar = []
 	for linha in linhas:
-		preco, idas, voltas = process_decolar_line(linha)
+		preco, companhia, idas, voltas = process_decolar_line(linha)
 
 		# colar idas e voltas possíveis
 		for ida in idas:
 			for volta in voltas:
-				row = [preco] + ida + volta
+				row = [preco] + [companhia] + ida + volta
 				dados_decolar.append(row)
 	return np.array(dados_decolar)
 
@@ -94,10 +95,10 @@ def scrape_decolar(origem, destino, ida, volta):
 
 	dados_df = pd.concat([dados_df, origem_df, destino_df], axis = 1)
 
-	dados_df.columns = ('preco', 'sai_ida', 'chega_ida', 'sai_volta',
-		'chega_volta', 'ano_ida', 'mes_ida', 'dia_ida', 'ano_volta',
-		 'mes_volta', 'dia_volta', 'ano_coleta', 'mes_coleta', 'dia_coleta', 
-		 'hora_coleta', 'min_coleta', 'origem', 'destino') 
+	dados_df.columns = ('preco', 'companhia', 'sai_ida', 'chega_ida',
+		'sai_volta', 'chega_volta', 'ano_ida', 'mes_ida', 'dia_ida',
+		'ano_volta', 'mes_volta', 'dia_volta', 'ano_coleta', 'mes_coleta',
+		'dia_coleta', 'hora_coleta', 'min_coleta', 'origem', 'destino') 
  
 	return dados_df
 	
@@ -161,7 +162,7 @@ def scrape_vgsn_decolar(vgns):
 
 					df_list.append(df) 
 
-	print(pd.concat(df_list))
+	return pd.concat(df_list)
 		
 wd = webdriver.Firefox()
 
@@ -170,6 +171,7 @@ fim = comeco + dt.timedelta(days = 20)
 
 viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
 
-df = scrape_vgsn_decolar(viagens)
+#df = scrape_vgsn_decolar(viagens)
 
-
+df = scrape_decolar('SAO', 'GIG', '2016-09-07', '2016-09-17')
+print(df)
