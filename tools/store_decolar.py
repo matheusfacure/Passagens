@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 import time
 import re
 import datetime as dt
@@ -167,15 +168,21 @@ def scrape_vgsn_decolar(vgns):
 					df_list.append(df) 
 
 	return pd.concat(df_list, ignore_index = True)
-		
-wd = webdriver.Firefox()
+
+
+binary = FirefoxBinary('firefox')		
+wd = webdriver.Firefox(firefox_binary=binary)
 
 comeco = dt.datetime.today() + dt.timedelta(days = 1)
-fim = comeco + dt.timedelta(days = 20)
-viagens = vgns(['SAO'], ['GIG'], comeco, fim, 3)
+fim = comeco + dt.timedelta(days = 50)
+sig_aero = ['BSB', 'GRU'] 
+viagens = vgns([sig_aero[0]], [sig_aero[1]], comeco, fim, 3)
 df = scrape_vgsn_decolar(viagens)
 
-wd.close()
+try:
+	wd.close()
+except:
+	pass
 
-file = '../data/' + viagens.identidade + '.csv'
+file = 'D:/data/Passagens/' + viagens.identidade + '.csv'
 df.to_csv(file, sep = ';', date_format = '%Y', index = True)
