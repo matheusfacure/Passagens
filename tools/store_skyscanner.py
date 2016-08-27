@@ -55,10 +55,37 @@ class vgns():
 		return len(self.idas)
 
 def  scrape_skyscanner_vgns(vgns):
-	pass
+	json_list = []
+	for origem in vgns.origens:
+		for destino in vgns.destinos:
+			for ida in vgns.idas:
+				for volta in vgns.voltas:
+
+					# pulando algumas iterações
+					ida_tm = time.strptime(ida, "%Y-%m-%d")
+					volta_tm = time.strptime(volta, "%Y-%m-%d")
+					if ida_tm > volta_tm:
+						continue
+					if origem == destino:
+						continue
+
+					print('\n\n Coletando: ', origem, destino, ida, volta)
+					try:
+						json_dic = scrape_skyscanner(origem, destino,
+							ida, volta)
+					except:
+						print('Erro ao Coletar: ', origem, destino, ida, volta)
+					
+					json_list.append(json_dic)		
+	return json_list
 
 
-output = scrape_skyscanner('GRU', 'GIG', '2016-09-25', '2016-09-28')
+
+comeco = dt.datetime.today() + dt.timedelta(days = 1)
+fim = comeco + dt.timedelta(days = 5)
+viagens = vgns(['BSB'], ['VCP'], comeco, fim, 3)
+
+output = scrape_skyscanner_vgns(viagens)
 
 
 with open('data.json', 'w') as outfile:
