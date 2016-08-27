@@ -4,9 +4,12 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import re
+import time
+from pprint import pprint as pp
+
 
 def scrape_skyscanner(origem, destino, ida, volta):
-	flights_service = Flights('Key')
+	flights_service = Flights('key')
 	result = flights_service.get_result(
 		country = 'BR',
 		currency = 'BRL',
@@ -16,6 +19,8 @@ def scrape_skyscanner(origem, destino, ida, volta):
 		outbounddate = ida,
 		inbounddate = volta,
 		adults = 1).parsed
+	
+	result['hora_coleta'] = time.localtime()
 	return result
 
 class vgns():
@@ -49,7 +54,19 @@ class vgns():
 	def __len__(self):
 		return len(self.idas)
 
-output = scrape_skyscanner('GRU', 'GIG', '2016-08-25', '2016-08-28')
+def  scrape_skyscanner_vgns(vgns):
+	pass
 
-with open('data.txt', 'w') as outfile:
+
+output = scrape_skyscanner('GRU', 'GIG', '2016-09-25', '2016-09-28')
+
+
+with open('data.json', 'w') as outfile:
     json.dump(output, outfile)
+
+
+with open('data.json', 'r') as fp:
+    data = json.load(fp)
+
+
+pp(data)
