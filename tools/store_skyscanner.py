@@ -54,6 +54,13 @@ class vgns():
 	def __len__(self):
 		return len(self.idas)
 
+	def __str__(self):
+		s = 'Origens: ' + ' ; '.join(self.origens) + '\n'
+		s += 'Destinos: ' + ' ; '.join(self.destinos) + '\n'
+		s += 'Idas: ' +  ' ; '.join(self.idas) + '\n'
+		s += 'Voltas: ' + ' ; '.join(self.voltas) + '\n'
+		return s
+
 def  scrape_skyscanner_vgns(vgns):
 	json_list = []
 	for origem in vgns.origens:
@@ -68,32 +75,38 @@ def  scrape_skyscanner_vgns(vgns):
 						continue
 					if origem == destino:
 						continue
-
 					print('\n\n Coletando: ', origem, destino, ida, volta)
 					try:
 						json_dic = scrape_skyscanner(origem, destino,
 							ida, volta)
 					except:
 						print('Erro ao Coletar: ', origem, destino, ida, volta)
-					
-					json_list.append(json_dic)		
+						json_dic = None
+
+					json_list.append(json_dic)
+
+	print('O objeto de coleta foi: ', vgns)
 	return json_list
 
 
 
 comeco = dt.datetime.today() + dt.timedelta(days = 1)
-fim = comeco + dt.timedelta(days = 5)
+fim = comeco + dt.timedelta(days = 50)
 viagens = vgns(['BSB'], ['VCP'], comeco, fim, 3)
+
+#output = scrape_skyscanner('BSB', 'VCP', '2016-08-31', '2016-09-07')
 
 output = scrape_skyscanner_vgns(viagens)
 
+file = viagens.identidade + '.json'
 
-with open('data.json', 'w') as outfile:
+
+with open(file, 'w') as outfile:
     json.dump(output, outfile)
 
 
-with open('data.json', 'r') as fp:
-    data = json.load(fp)
+#with open(file, 'r') as fp:
+#    data = json.load(fp)
 
 
-pp(data)
+#pp(data)
