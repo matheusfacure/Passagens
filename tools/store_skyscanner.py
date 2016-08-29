@@ -1,11 +1,8 @@
 from skyscanner.skyscanner import Flights
 import simplejson as json
 import datetime as dt
-import numpy as np
-import pandas as pd
-import re
 import time
-from pprint import pprint as pp
+import re
 
 
 def scrape_skyscanner(origem, destino, ida, volta):
@@ -90,23 +87,28 @@ def  scrape_skyscanner_vgns(vgns):
 
 
 
-comeco = dt.datetime.today() + dt.timedelta(days = 1)
+comeco = dt.datetime.today() + dt.timedelta(days = 1) # amanhã
+
+# 2 em 2 dias, curto prazo
 fim = comeco + dt.timedelta(days = 50)
-viagens = vgns(['BSB'], ['VCP'], comeco, fim, 3)
+viagens = vgns(['BSB'], ['VCP'], comeco, fim, 2)
 
-#output = scrape_skyscanner('BSB', 'VCP', '2016-08-31', '2016-09-07')
+# 5 em 5 dias, médio prazo
+fim1 = comeco + dt.timedelta(days = 100)
+viagens1 = vgns(['BSB'], ['VCP'], comeco, fim1, 5)
+viagens2 = vgns(['GRU', 'VCP'], ['CFN','MAO', 'GIG'], comeco, fim1, 5)
 
-output = scrape_skyscanner_vgns(viagens)
+# 10 em 10 dias, longo prazo
+fim2 = comeco + dt.timedelta(days = 200)
+viagens3 = vgns(['GRU'], ['JFK','LIM', 'TXL', 'TPE'], comeco, fim2, 10)
 
-file = viagens.identidade + '.json'
+# coletar viagens
+viagens_list = [viagens, viagens1, viagens2, viagens3]
+for v in viagens_list:
+	output = scrape_skyscanner_vgns(v)
+	file = viagens.identidade + '.json'
 
+	with open(file, 'w') as outfile:
+		json.dump(output, outfile)
+	
 
-with open(file, 'w') as outfile:
-    json.dump(output, outfile)
-
-
-#with open(file, 'r') as fp:
-#    data = json.load(fp)
-
-
-#pp(data)
