@@ -122,11 +122,21 @@ viagens3 = vgns(['GRU'], [destino3], comeco, fim2, 13)
 
 # coletar viagens
 viagens_list = [viagens, viagens1, viagens2, viagens3]
+t_list = []
+
 for v in viagens_list:
+	t0 = time.time()
 	output = scrape_skyscanner_vgns(v)
 	file = v.identidade + '.json'
 	with open(file, 'w') as outfile:
 		json.dump(output, outfile)
-	
+	dt = round(time.time()-t0, 3)
 	print('O arquivo ', file, ' foi criado.')
+	t_list.append(['Tempo para coletar '+v.identidade+': '+str(dt)+'s', dt])
 
+t_tot = 0 
+for t in t_list:
+	print('\n', t[0])
+	t_tot += t[1]
+
+print('\nTempo total: ', t_tot)
