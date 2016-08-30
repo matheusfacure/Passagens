@@ -3,6 +3,7 @@ import simplejson as json
 import datetime as dt
 import time
 import re
+import random
 
 
 def scrape_skyscanner(origem, destino, ida, volta):
@@ -88,27 +89,44 @@ def  scrape_skyscanner_vgns(vgns):
 
 
 comeco = dt.datetime.today() + dt.timedelta(days = 1) # amanhã
+	
 
-# 2 em 2 dias, curto prazo
-fim = comeco + dt.timedelta(days = 50)
-viagens = vgns(['BSB'], ['VCP'], comeco, fim, 2)
+# 3 em 3 dias, curto prazo, apenas viagem padrão
+fim = comeco + dt.timedelta(days = 60)
+viagens = vgns(['BSB'], ['VCP'], comeco, fim, 3)
 
-# 5 em 5 dias, médio prazo
+
+# 5 em 5 dias, médio prazo, voos nacionais
+sigl_aero_nac = ['BSB', 'GIG', 'SSA', 'FLN', 'POA', 'REC', 'CWB', 'BEL', 'VIX',
+	'CGB', 'CGR', 'FOR', 'GYN', 'MAO', 'NAT', 'GRU', 'CNF']  
 fim1 = comeco + dt.timedelta(days = 100)
-viagens1 = vgns(['BSB'], ['VCP'], comeco, fim1, 5)
-viagens2 = vgns(['GRU', 'VCP'], ['CFN','MAO', 'GIG'], comeco, fim1, 5)
 
-# 10 em 10 dias, longo prazo
-fim2 = comeco + dt.timedelta(days = 200)
-viagens3 = vgns(['GRU'], ['JFK','LIM', 'TXL', 'TPE'], comeco, fim2, 10)
+# viagem padrão
+viagens1 = vgns(['BSB'], ['VCP'], comeco, fim1, 5)
+
+# seleciona ida e volta retirando aleatoriamente sem substituição da lista acima
+origem2 = sigl_aero_nac.pop(random.randint(0, len(sigl_aero_nac) - 1))
+destino2 = sigl_aero_nac.pop(random.randint(0, len(sigl_aero_nac) - 1))
+viagens2 = vgns([origem2], [destino2], comeco, fim1, 5)
+
+
+# 13 em 13 dias, longo prazo
+sigl_aero_int = ['JFK', 'TXL', 'EZE', 'LGW', 'TPE', 'CAI', 'JNB', 'SFO', 'SVO', 
+	'MEX', 'DEL', 'SYD', 'CDG']
+fim2 = comeco + dt.timedelta(days = 260)
+
+# seleciona destino internacional de maneira aleatória
+destino3 = random.choice(sigl_aero_int)
+
+viagens3 = vgns(['GRU'], [destino3], comeco, fim2, 13)
 
 # coletar viagens
 viagens_list = [viagens, viagens1, viagens2, viagens3]
 for v in viagens_list:
 	output = scrape_skyscanner_vgns(v)
-	file = viagens.identidade + '.json'
-
+	file = v.identidade + '.json'
 	with open(file, 'w') as outfile:
 		json.dump(output, outfile)
 	
+	print('O arquivo ', file, ' foi criado.')
 
