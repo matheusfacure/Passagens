@@ -122,8 +122,9 @@ viagens3 = vgns(['GRU'], [destino3], comeco, fim2, 13)
 
 # coletar viagens
 viagens_list = [viagens, viagens1, viagens2, viagens3]
-t_list = []
+random.shuffle(viagens_list) # embaralha a lista para evitar vies de coleta
 
+t_list = []
 for v in viagens_list:
 	t0 = time.time()
 	output = scrape_skyscanner_vgns(v)
