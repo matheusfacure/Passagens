@@ -36,7 +36,7 @@ def process(dicio):
 				# preço, QAgInMin, Agent, InId, OuId
 
 
-	# limpa os agentes e retira informações irrelevantes
+	# limpa os agentes e adiciona infos relevantes às observações
 	for row in rows:
 		for agent in dicio['Agents']:
 			if agent['Id'] == row[2]: # se o Id da row e do agente baterem
@@ -45,21 +45,23 @@ def process(dicio):
 				row.append(agent['Status'])
 				row.append(agent['Type'])
 
+
 	return rows
 
 
+if __name__ == '__main__':
 
-file = 'BSB-VCP-201612131212-201612131212.json'
+	file = 'BSB-VCP-201612131212-201612131212.json'
 
-with open(file, 'r') as fp:
-	data = json.load(fp)
+	with open(file, 'r') as fp:
+		data = json.load(fp)
 
-data = clean_none(data)
-pp(data[0])
+	data = clean_none(data)
+	pp(data[0])
 
-pdata = process(data[0])
+	pdata = process(data[0])
 
 
 
-pp(pdata)
-print(data[0].keys())
+	pp(pdata)
+	print(data[0].keys())
