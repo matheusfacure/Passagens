@@ -17,9 +17,35 @@ def clean_none(data):
 		new_data.append(i)
 	return new_data
 	
-def add_leg_info_to_row(row):
-	pass
+def add_leg_info_to_row(row, leg):
+	row.append(leg['Departure'])
+	row.append(leg['Arrival'])
+	row.append(leg['Duration'])
+	row.append(leg['JourneyMode'])
+	row.append(leg['OriginStation'])
+	row.append(leg['DestinationStation'])
+				
+	for i in range(3):
+		if len(leg['Stops']) >= i + 1:
+			if leg['Stops'][i] is None:
+				row.append(0)
+			else:
+				row.append(leg['Stops'][i])
+		else:
+			row.append(0)
 
+	for i in range(3):
+		if len(leg['OperatingCarriers']) >= i + 1:
+			row.append(leg['OperatingCarriers'][i])
+		else:
+			row.append(0)
+
+	for i in range(3):
+		if len(leg['Carriers']) >= i + 1:
+			row.append(leg['Carriers'][i])
+		else:
+			row.append(0)
+	
 
 
 def process(dicio):
@@ -36,8 +62,8 @@ def process(dicio):
 				row.append(itinerarie['InboundLegId'])						 
 				row.append(itinerarie['OutboundLegId'])
 				rows.append(row)
-				# row no formato:
-				# preço, QAgInMin, Agent, InId, OutId
+	# row no formato:
+	# [preço, QAgInMin, Agent, InId, OutId]
 
 
 	# limpa os agentes e adiciona infos relevantes às observações
@@ -48,9 +74,9 @@ def process(dicio):
 				row.append(agent['OptimisedForMobile'])
 				row.append(agent['Status'])
 				row.append(agent['Type'])
-				# row no formato:
-				# preço, QAgInMin, Agent, InId, OutId,
-				# ag_nome,  ag_optMobile, ag_stat, ag_type 
+	# row no formato:
+	# [preço, QAgInMin, Agent, InId, OutId,
+	# ag_nome,  ag_optMobile, ag_stat, ag_type]
 
 
 	# limpa os agentes e adiciona infos relevantes às observações
@@ -59,37 +85,17 @@ def process(dicio):
 
 			# informações sobre a ida
 			if leg['Id'] == row[4]: # se o OutId da row e do Lag coincidirem
-				row.append(leg['Departure'])
-				row.append(leg['Arrival'])
-				row.append(leg['Duration'])
-				row.append(leg['JourneyMode'])
-				row.append(leg['OriginStation'])
-				row.append(leg['DestinationStation'])
-				
-				for i in range(5):
-					if len(leg['Stops']) >= i + 1:
-						if leg['Stops'][i] is None:
-							row.append(0)
-						else:
-							row.append(leg['Stops'][i])
-					else:
-						row.append(0)
-
-				for i in range(5):
-					if len(leg['OperatingCarriers']) >= i + 1:
-						row.append(leg['OperatingCarriers'][i])
-					else:
-						row.append(0)
-
-				for i in range(5):
-					if len(leg['Carriers']) >= i + 1:
-						row.append(leg['Carriers'][i])
-					else:
-						row.append(0)
+				add_leg_info_to_row(row, leg)
 
 			# informações sobre a volta
 			if leg['Id'] == row[3]: # se o inId da row e do Lag coincidirem
-				pass
+				add_leg_info_to_row(row, leg)
+	# row no formato:
+	# [preço, QAgInMin, Agent, InId, OutId,
+	# ag_nome,  ag_optMobile, ag_stat, ag_type
+	# out_saida, out_chegada, out_dura, out_jMode, out_orStat, out_desStat,
+	#	out_stop1, out_stop2, out_stop3, out_OpCarr1, out_OpCarr2, out_OpCarr3,
+	#	out_carr1, out_carr2, out_carr3
 
 
 
