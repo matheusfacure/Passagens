@@ -86,58 +86,58 @@ def  scrape_skyscanner_vgns(vgns):
 	print('O objeto de coleta foi: ', vgns)
 	return json_list
 
+if __name__ == '__main__':
+
+	comeco = dt.datetime.today() + dt.timedelta(days = 1) # amanhã
+		
+
+	# 3 em 3 dias, curto prazo, apenas viagem padrão
+	fim = comeco + dt.timedelta(days = 60)
+	viagens = vgns(['BSB'], ['VCP'], comeco, fim, 3)
 
 
-comeco = dt.datetime.today() + dt.timedelta(days = 1) # amanhã
-	
+	# 5 em 5 dias, médio prazo, voos nacionais
+	sigl_aero_nac = ['BSB', 'GIG', 'SSA', 'FLN', 'POA', 'REC', 'CWB', 'BEL',
+	 'VIX', 'CGB', 'CGR', 'FOR', 'GYN', 'MAO', 'NAT', 'GRU', 'CNF']  
+	fim1 = comeco + dt.timedelta(days = 100)
 
-# 3 em 3 dias, curto prazo, apenas viagem padrão
-fim = comeco + dt.timedelta(days = 60)
-viagens = vgns(['BSB'], ['VCP'], comeco, fim, 3)
+	# viagem padrão
+	viagens1 = vgns(['BSB'], ['VCP'], comeco, fim1, 5)
 
-
-# 5 em 5 dias, médio prazo, voos nacionais
-sigl_aero_nac = ['BSB', 'GIG', 'SSA', 'FLN', 'POA', 'REC', 'CWB', 'BEL', 'VIX',
-	'CGB', 'CGR', 'FOR', 'GYN', 'MAO', 'NAT', 'GRU', 'CNF']  
-fim1 = comeco + dt.timedelta(days = 100)
-
-# viagem padrão
-viagens1 = vgns(['BSB'], ['VCP'], comeco, fim1, 5)
-
-# seleciona ida e volta retirando aleatoriamente sem substituição da lista acima
-origem2 = sigl_aero_nac.pop(random.randint(0, len(sigl_aero_nac) - 1))
-destino2 = sigl_aero_nac.pop(random.randint(0, len(sigl_aero_nac) - 1))
-viagens2 = vgns([origem2], [destino2], comeco, fim1, 5)
+	# seleciona ida e volta aleatoriamente
+	origem2 = sigl_aero_nac.pop(random.randint(0, len(sigl_aero_nac) - 1))
+	destino2 = sigl_aero_nac.pop(random.randint(0, len(sigl_aero_nac) - 1))
+	viagens2 = vgns([origem2], [destino2], comeco, fim1, 5)
 
 
-# 13 em 13 dias, longo prazo
-sigl_aero_int = ['JFK', 'TXL', 'EZE', 'LGW', 'TPE', 'CAI', 'JNB', 'SFO', 'SVO', 
-	'MEX', 'DEL', 'SYD', 'CDG']
-fim2 = comeco + dt.timedelta(days = 260)
+	# 13 em 13 dias, longo prazo
+	sigl_aero_int = ['JFK', 'TXL', 'EZE', 'LGW', 'TPE', 'CAI', 'JNB', 'SFO',
+	 'SVO', 'MEX', 'DEL', 'SYD', 'CDG']
+	fim2 = comeco + dt.timedelta(days = 260)
 
-# seleciona destino internacional de maneira aleatória
-destino3 = random.choice(sigl_aero_int)
+	# seleciona destino internacional de maneira aleatória
+	destino3 = random.choice(sigl_aero_int)
 
-viagens3 = vgns(['GRU'], [destino3], comeco, fim2, 13)
+	viagens3 = vgns(['GRU'], [destino3], comeco, fim2, 13)
 
-# coletar viagens
-viagens_list = [viagens, viagens1, viagens2, viagens3]
-random.shuffle(viagens_list) # embaralha a lista para evitar vies de coleta
+	# coletar viagens
+	viagens_list = [viagens, viagens1, viagens2, viagens3]
+	random.shuffle(viagens_list) # embaralha a lista para evitar vies de coleta
 
-t_list = []
-for v in viagens_list:
-	t0 = time.time()
-	output = scrape_skyscanner_vgns(v)
-	file = v.identidade + '.json'
-	with open(file, 'w') as outfile:
-		json.dump(output, outfile)
-	dt = round(time.time()-t0, 3)
-	print('O arquivo ', file, ' foi criado.')
-	t_list.append(['Tempo para coletar '+v.identidade+': '+str(dt)+'s', dt])
+	t_list = []
+	for v in viagens_list:
+		t0 = time.time()
+		output = scrape_skyscanner_vgns(v)
+		file = v.identidade + '.json'
+		with open(file, 'w') as outfile:
+			json.dump(output, outfile)
+		dt = round(time.time()-t0, 3)
+		print('O arquivo ', file, ' foi criado.')
+		t_list.append(['Tempo para coletar '+v.identidade+': '+str(dt)+'s', dt])
 
-t_tot = 0 
-for t in t_list:
-	print('\n', t[0])
-	t_tot += t[1]
+	t_tot = 0 
+	for t in t_list:
+		print('\n', t[0])
+		t_tot += t[1]
 
-print('\nTempo total: ', t_tot)
+	print('\nTempo total: ', t_tot)
