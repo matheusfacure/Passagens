@@ -18,13 +18,11 @@ def clean_none(data):
 	return new_data
 	
 
-def process_itinerary(dicio):
-	print(dicio.keys())
-	itineraries = dicio['Itineraries']
-	
-	# limpa o texto e retira informações irrelevantes
+def process(dicio):
 	rows = []
-	for itinerarie in itineraries:
+
+	# limpa o itinerário e retira informações irrelevantes
+	for itinerarie in dicio['Itineraries']:
 		for option in itinerarie['PricingOptions']:
 			for agent in option['Agents']:
 				row = []
@@ -34,6 +32,19 @@ def process_itinerary(dicio):
 				row.append(itinerarie['InboundLegId'])						 
 				row.append(itinerarie['OutboundLegId'])
 				rows.append(row)
+				# row no formato:
+				# preço, QAgInMin, Agent, InId, OuId
+
+
+	# limpa os agentes e retira informações irrelevantes
+	for row in rows:
+		for agent in dicio['Agents']:
+			if agent['Id'] == row[2]: # se o Id da row e do agente baterem
+				row.append(agent['Name'])
+				row.append(agent['OptimisedForMobile'])
+				row.append(agent['Status'])
+				row.append(agent['Type'])
+
 	return rows
 
 
@@ -43,10 +54,12 @@ file = 'BSB-VCP-201612131212-201612131212.json'
 with open(file, 'r') as fp:
 	data = json.load(fp)
 
-print(len(data))
 data = clean_none(data)
-print(len(data))
+pp(data[0])
 
-pdata = process_itinerary(data[0])
-#pp(data[0])
+pdata = process(data[0])
+
+
+
 pp(pdata)
+print(data[0].keys())
