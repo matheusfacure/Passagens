@@ -17,6 +17,7 @@ def clean_none(data):
 		new_data.append(i)
 	return new_data
 	
+
 def add_leg_info_to_row(row, leg):
 	row.append(leg['Departure'])
 	row.append(leg['Arrival'])
@@ -54,8 +55,7 @@ def add_place_info_to_row(dicio, row, row_station):
 				row.append(place['Type'])
 
 
-
-def process(dicio):
+def json_to_lists(dicio):
 	rows = []
 
 	# limpa o itinerário e retira informações irrelevantes
@@ -126,10 +126,19 @@ def process(dicio):
 	# row no formato:
 	# row + [col_year(47), col_mon(48), col_mday(49), col_hour(50), col_min(51),
 	#	col_sec(52), col_wday(53), col_yday(54), col_isds(55)
-	for row in rows:
-		print(len(row))
+	
 	return rows
 
+
+def process(jsons):
+	data = clean_none(jsons)
+
+	table = np.array(json_to_lists(data[0]))
+	for dicio in data:
+		arr = np.array(json_to_lists(dicio))
+		table = np.concatenate((table, arr), axis=0)
+
+	print(table)
 
 if __name__ == '__main__':
 
@@ -138,12 +147,6 @@ if __name__ == '__main__':
 	with open(file, 'r') as fp:
 		data = json.load(fp)
 
-	data = clean_none(data)
-	pp(data[0])
-
-	pdata = process(data[0])
+	pdata = process(data)
 
 
-
-	#pp(pdata)
-	#print(data[0].keys())
