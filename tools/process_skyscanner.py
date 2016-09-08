@@ -170,11 +170,18 @@ if __name__ == '__main__':
 			data = json.load(in_file)
 		
 		# processa os dados em uma data frame
+		print('\nProcessando %s ...' % file)
+		t0 = time.time()
 		pdata = process(data)
+		print('Tempo para processar %s:' % file, round(time.time()-t0, 3), 's')
 
 		# salva em csv
 		out_file = file[0:-5] + '.csv'
+		print('\nSalvando %s ...' % out_file)
+
+		t0 = time.time()
 		pdata.to_csv(out_file, sep = ';', date_format = '%Y', index = True)
+		print('Tempo para salvar %s:' % out_file, round(time.time()-t0, 3), 's')
 		
 
 
