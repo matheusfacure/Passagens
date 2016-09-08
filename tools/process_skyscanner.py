@@ -4,9 +4,7 @@ import time
 import re
 import numpy as np
 import pandas as pd
-
-from pprint import pprint as pp
-
+from sys import argv
 
 
 def clean_none(data):
@@ -125,28 +123,50 @@ def json_to_lists(dicio):
 			row.append(t_coleta)
 	# row no formato:
 	# row + [col_year(47), col_mon(48), col_mday(49), col_hour(50), col_min(51),
-	#	col_sec(52), col_wday(53), col_yday(54), col_isds(55)
+	#	col_sec(52), col_wday(53), col_yday(54), col_isds(55)]
 	
 	return rows
 
 
 def process(jsons):
 	data = clean_none(jsons)
-
 	table = np.array(json_to_lists(data[0]))
 	for dicio in data:
 		arr = np.array(json_to_lists(dicio))
 		table = np.concatenate((table, arr), axis=0)
 
-	print(table)
+	df = pd.DataFrame(table)
+	df.columns = ['preco', 'qAgInMin', 'agent', 'inId', 'outId', 'ag_nome',
+	 'ag_optMobile', 'ag_stat', 'ag_type',
+	 'out_saida', 'out_chegada', 'out_dura', 'out_jMode', 'out_orStat',
+	 	'out_desStat', 'out_stop1', 'out_stop2', 'out_stop3', 'out_opCarr1',
+	 	'out_opCarr2', 'out_opCarr3', 'out_carr1', 'out_carr2', 'out_carr3',
+	 'in_saida', 'in_chegada', 'in_dura', 'in_jMode', 'in_orStat', 'in_desStat',
+		'in_stop1', 'in_stop2', 'in_stop3', 'in_opCarr1', 'in_opCarr2',
+		'in_OpCarr3', 'in_carr1', 'in_carr2', 'in_carr3',
+	 'ida_or_nome', 'ida_or_tipo', 'ida_dest_nome', 'ida_dest_tipo',
+	 'volta_or_nome', 'volta_or_tipo', 'volta_dest_nome', 'volta_dest_tipo',
+	 'col_year', 'col_mon', 'col_mday', 'col_hour', 'col_min', 'col_sec',
+	  'col_wday', 'col_yday', 'col_isds']
+	
+	return df
+
 
 if __name__ == '__main__':
 
 	file = 'BSB-VCP-201612131212-201612131212.json'
+	
+	#files = argv[1:] # pega os arquivos
+	#for file in files:
+	#	pass
 
+	# lê o arquivo
 	with open(file, 'r') as fp:
 		data = json.load(fp)
 
+	# processa os dados em
 	pdata = process(data)
-
+	
+	out_file = file[0:-5] + '.csv'
+	pdata.to_csv(out_file, sep = ';', date_format = '%Y', index = True)
 
