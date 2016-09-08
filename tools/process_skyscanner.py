@@ -4,8 +4,7 @@ import time
 import re
 import numpy as np
 import pandas as pd
-from sys import argv
-
+from sys import argv, exit
 
 def clean_none(data):
 	new_data = []
@@ -154,19 +153,28 @@ def process(jsons):
 
 if __name__ == '__main__':
 
-	file = 'BSB-VCP-201612131212-201612131212.json'
+	# file = 'BSB-VCP-201612131212-201612131212.json'
 	
-	#files = argv[1:] # pega os arquivos
-	#for file in files:
-	#	pass
+	files = argv[1:] # pega os arquivos
+	for file in files:
+		
+		# ensure proper usage
+		if file[-5:] != '.json':
+			print('Uso: \n `python3 skyscannerfile.json` ou\n '\
+				'`python3 *.json` ')
+			print('Arquivo %s não é do formato esperado' % file)
+			exit(1)
 
-	# lê o arquivo
-	with open(file, 'r') as fp:
-		data = json.load(fp)
+		# lê o arquivo
+		with open(file, 'r') as in_file:
+			data = json.load(in_file)
+		
+		# processa os dados em uma data frame
+		pdata = process(data)
 
-	# processa os dados em
-	pdata = process(data)
-	
-	out_file = file[0:-5] + '.csv'
-	pdata.to_csv(out_file, sep = ';', date_format = '%Y', index = True)
+		# salva em csv
+		out_file = file[0:-5] + '.csv'
+		pdata.to_csv(out_file, sep = ';', date_format = '%Y', index = True)
+		
+
 
