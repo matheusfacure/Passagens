@@ -28,23 +28,24 @@ def add_leg_info_to_row(row, leg):
 	for i in range(3):
 		if len(leg['Stops']) >= i + 1:
 			if leg['Stops'][i] is None:
-				row.append(0)
+				row.append('NaN')
 			else:
 				row.append(leg['Stops'][i])
 		else:
-			row.append(0)
+			row.append('NaN')
 
 	for i in range(3):
 		if len(leg['OperatingCarriers']) >= i + 1:
 			row.append(leg['OperatingCarriers'][i])
 		else:
-			row.append(0)
+			row.append('NaN')
 
 	for i in range(3):
 		if len(leg['Carriers']) >= i + 1:
 			row.append(leg['Carriers'][i])
 		else:
-			row.append(0)
+			row.append('NaN')
+
 
 def add_place_info_to_row(dicio, row, row_station):
 	for place in dicio['Places']:
@@ -105,7 +106,7 @@ def json_to_lists(dicio):
 				# Se não acharmos uma volta, adicionamos zeros
 				if not volta_check:
 					for unused in range(15):
-						row.append(0)
+						row.append('NaN')
 
 	# row no formato:
 	# [preço(0), QAgInMin(1), Agent(2), InId(3), OutId(4),
