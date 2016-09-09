@@ -5,6 +5,8 @@ import re
 import numpy as np
 import pandas as pd
 from sys import argv, exit
+from pprint import pprint as pp
+
 
 def clean_none(data):
 	new_data = []
@@ -43,7 +45,6 @@ def add_leg_info_to_row(row, leg):
 			row.append(leg['Carriers'][i])
 		else:
 			row.append(0)
-	
 
 def add_place_info_to_row(dicio, row, row_station):
 	for place in dicio['Places']:
@@ -82,16 +83,29 @@ def json_to_lists(dicio):
 	# ag_nome,  ag_optMobile, ag_stat, ag_type]
 
 	# limpa os lags e adiciona infos relevantes às observações
+	volta_check = False
 	for row in rows:
+		
 		for leg in dicio['Legs']:
 
 			# informações sobre a ida
 			if leg['Id'] == row[4]: # se o OutId da row e do Lag coincidirem
 				add_leg_info_to_row(row, leg)
+				
+				# achamos a ida, agora procuramos a volta
+				# Obs: nem sempre há volta
+				for volta_leg in dicio['Legs']:
 
-			# informações sobre a volta
-			if leg['Id'] == row[3]: # se o inId da row e do Lag coincidirem
-				add_leg_info_to_row(row, leg)
+					# informações sobre a volta (Obs: nem sempre há volta)
+					if leg['Id'] == row[3]:
+						add_leg_info_to_row(row, leg)
+						volta_check = True
+
+				# Se não acharmos uma volta, adicionamos zeros
+				if not volta_check:
+					for unused in range(15):
+						row.append(0)
+
 	# row no formato:
 	# [preço(0), QAgInMin(1), Agent(2), InId(3), OutId(4),
 	# ag_nome(5),  ag_optMobile(6), ag_stat(7), ag_type(8)
@@ -103,13 +117,20 @@ def json_to_lists(dicio):
 	#	in_desStat(29), in_stop1(30), in_stop2(31), in_stop3(32),
 	#	in_OpCarr1(33), in_OpCarr2(34), in_OpCarr3(35), in_carr1(36),
 	#	in_carr2(37), in_carr3(38)]
+		
 
 	# limpa os places e adiciona infos relevantes às observações
 	for row in rows:
 		add_place_info_to_row(dicio, row, 13)
 		add_place_info_to_row(dicio, row, 14)
-		add_place_info_to_row(dicio, row, 28)
-		add_place_info_to_row(dicio, row, 29)
+
+		if volta_check:
+			add_place_info_to_row(dicio, row, 28)
+			add_place_info_to_row(dicio, row, 29)
+		else:
+			for unused in range(4):
+				row.append('NaN')
+
 	# row no formato:
 	# row + [ida_or_nome(39), ida_or_tipo(40), ida_dest_nome(41),
 	#	ida_dest_tipo(42)
@@ -120,6 +141,8 @@ def json_to_lists(dicio):
 	for row in rows:
 		for t_coleta in dicio['hora_coleta']:
 			row.append(t_coleta)
+
+
 	# row no formato:
 	# row + [col_year(47), col_mon(48), col_mday(49), col_hour(50), col_min(51),
 	#	col_sec(52), col_wday(53), col_yday(54), col_isds(55)]
@@ -132,6 +155,10 @@ def process(jsons):
 	table = np.array(json_to_lists(data[0]))
 	for dicio in data:
 		arr = np.array(json_to_lists(dicio))
+		for row in arr:
+			if len(row) < 56:
+				print(arr)
+
 		table = np.concatenate((table, arr), axis=0)
 
 	df = pd.DataFrame(table)
@@ -153,8 +180,7 @@ def process(jsons):
 
 if __name__ == '__main__':
 
-	# file = 'BSB-VCP-201612131212-201612131212.json'
-	
+		
 	files = argv[1:] # pega os arquivos
 	for file in files:
 		
@@ -168,7 +194,8 @@ if __name__ == '__main__':
 		# lê o arquivo
 		with open(file, 'r') as in_file:
 			data = json.load(in_file)
-		
+
+
 		# processa os dados em uma data frame
 		print('\nProcessando %s ...' % file)
 		t0 = time.time()
