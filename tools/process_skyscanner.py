@@ -54,6 +54,7 @@ def add_place_info_to_row(dicio, row, row_station):
 
 
 def json_to_lists(dicio):
+	
 	rows = []
 
 	# limpa o itinerário e retira informações irrelevantes
@@ -154,11 +155,12 @@ def process(jsons):
 	data = clean_none(jsons)
 	table = np.array(json_to_lists(data[0]))
 	for dicio in data:
+		
+		# se não tivermos nenhuma viagem no dicio
+		if dicio['Itineraries'] == []:
+			continue
+		
 		arr = np.array(json_to_lists(dicio))
-		for row in arr:
-			if len(row) < 56:
-				print(arr)
-
 		table = np.concatenate((table, arr), axis=0)
 
 	df = pd.DataFrame(table)
