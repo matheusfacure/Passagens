@@ -5,6 +5,7 @@ import re
 import numpy as np
 import pandas as pd
 from sys import argv, exit
+from glob import glob
 from pprint import pprint as pp
 
 
@@ -177,8 +178,8 @@ def process(jsons):
 	df.columns = ['preco', 'qAgInMin', 'agent', 'inId', 'outId', 'ag_nome',
 	 'ag_optMobile', 'ag_stat', 'ag_type',
 	 'out_saida', 'out_chegada', 'out_dura', 'out_jMode', 'out_orStat',
-	 	'out_desStat', 'out_stop1', 'out_stop2', 'out_stop3', 'out_opCarr1',
-	 	'out_opCarr2', 'out_opCarr3', 'out_carr1', 'out_carr2', 'out_carr3',
+		'out_desStat', 'out_stop1', 'out_stop2', 'out_stop3', 'out_opCarr1',
+		'out_opCarr2', 'out_opCarr3', 'out_carr1', 'out_carr2', 'out_carr3',
 	 'in_saida', 'in_chegada', 'in_dura', 'in_jMode', 'in_orStat', 'in_desStat',
 		'in_stop1', 'in_stop2', 'in_stop3', 'in_opCarr1', 'in_opCarr2',
 		'in_OpCarr3', 'in_carr1', 'in_carr2', 'in_carr3',
@@ -188,6 +189,19 @@ def process(jsons):
 	  'col_wday', 'col_yday', 'col_isds']
 	
 	return df
+
+
+def load_CSVs(path):
+	allFiles = glob(path + "/*.csv")
+	frame = pd.DataFrame()
+	list_ = []
+	for file_ in allFiles:
+		df = pd.read_csv(file_, sep = ';', header=0)
+		list_.append(df)
+	frame = pd.concat(list_, ignore_index=True)
+	return frame
+
+
 
 
 if __name__ == '__main__':
@@ -219,7 +233,7 @@ if __name__ == '__main__':
 		print('\nSalvando %s ...' % out_file)
 
 		t0 = time.time()
-		pdata.to_csv(out_file, sep = ';', date_format = '%Y', index = True)
+		pdata.to_csv(out_file, sep = ';', date_format = '%Y', index = False)
 		print('Tempo para salvar %s:' % out_file, round(time.time()-t0, 3), 's')
 		
 
