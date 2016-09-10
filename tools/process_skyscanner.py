@@ -192,10 +192,16 @@ def process(jsons):
 
 
 def load_CSVs(path):
-	allFiles = glob(path + "/*.csv")
+	allFiles = glob(path)
 	frame = pd.DataFrame()
 	list_ = []
 	for file_ in allFiles:
+		
+		if file_[-4:] != '.csv':
+			print('Arquivo %s não é do formato esperado' % file_)
+			print("Arquivo deve ser uma df no formato csv, sep = ';'")
+			exit(1)
+
 		df = pd.read_csv(file_, sep = ';', header=0)
 		list_.append(df)
 	frame = pd.concat(list_, ignore_index=True)
