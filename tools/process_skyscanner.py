@@ -143,8 +143,7 @@ def json_to_lists(dicio):
 	for row in rows:
 		for t_coleta in dicio['hora_coleta']:
 			row.append(t_coleta)
-
-
+	
 	# row no formato:
 	# row + [col_year(47), col_mon(48), col_mday(49), col_hour(50), col_min(51),
 	#	col_sec(52), col_wday(53), col_yday(54), col_isds(55)]
@@ -154,9 +153,19 @@ def json_to_lists(dicio):
 
 def process(jsons):
 	data = clean_none(jsons)
+
 	table = np.array(json_to_lists(data[0]))
+
+	# verifica se o primeiro array da tabela não é vazio
+	# so continua quando começar a tabela com um array != de zero
+	i = 1
+	while table.shape[0] == 0:
+		table = np.array(json_to_lists(data[i]))
+		i += 1
+
+
 	for dicio in data:
-		
+				
 		# se não tivermos nenhuma viagem no dicio
 		if dicio['Itineraries'] == []:
 			continue
