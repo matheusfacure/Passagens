@@ -182,7 +182,7 @@ def process(jsons):
 		'out_opCarr2', 'out_opCarr3', 'out_carr1', 'out_carr2', 'out_carr3',
 	 'in_saida', 'in_chegada', 'in_dura', 'in_jMode', 'in_orStat', 'in_desStat',
 		'in_stop1', 'in_stop2', 'in_stop3', 'in_opCarr1', 'in_opCarr2',
-		'in_OpCarr3', 'in_carr1', 'in_carr2', 'in_carr3',
+		'in_opCarr3', 'in_carr1', 'in_carr2', 'in_carr3',
 	 'ida_or_nome', 'ida_or_tipo', 'ida_dest_nome', 'ida_dest_tipo',
 	 'volta_or_nome', 'volta_or_tipo', 'volta_dest_nome', 'volta_dest_tipo',
 	 'col_year', 'col_mon', 'col_mday', 'col_hour', 'col_min', 'col_sec',
@@ -205,6 +205,22 @@ def load_CSVs(path):
 		df = pd.read_csv(file_, sep = ';', header=0)
 		list_.append(df)
 	frame = pd.concat(list_, ignore_index=True)
+
+	# converte para os tipos certos
+	categ_var = ['ag_type', 'agent', 'out_orStat', 'out_desStat', 'out_opCarr1',
+		'out_opCarr2', 'out_opCarr3', 'in_opCarr1', 'in_opCarr2', 'in_opCarr3',
+		'in_orStat', 'in_desStat', 'in_carr1', 'in_carr2', 'in_carr3',
+		'out_carr1', 'out_carr2', 'out_carr3', 'in_jMode', 'out_jMode',
+		'in_orStat', 'ida_or_nome', 'ida_or_tipo', 'ida_dest_tipo',
+		'ida_dest_nome', 'volta_or_nome', 'volta_or_tipo', 'volta_dest_tipo',
+		'volta_dest_nome', 'ag_nome', 'ag_stat']
+
+	for var in categ_var:
+		frame[var] = df[var].astype('category')
+
+
+
+
 	return frame
 
 
@@ -241,6 +257,6 @@ if __name__ == '__main__':
 		t0 = time.time()
 		pdata.to_csv(out_file, sep = ';', date_format = '%Y', index = False)
 		print('Tempo para salvar %s:' % out_file, round(time.time()-t0, 3), 's')
-		
+		print('\n')
 
 
