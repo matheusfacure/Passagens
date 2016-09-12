@@ -100,8 +100,8 @@ def json_to_lists(dicio):
 				for volta_leg in dicio['Legs']:
 
 					# informações sobre a volta (Obs: nem sempre há volta)
-					if leg['Id'] == row[3]:
-						add_leg_info_to_row(row, leg)
+					if volta_leg['Id'] == row[3]:
+						add_leg_info_to_row(row, volta_leg)
 						volta_check = True
 
 				# Se não acharmos uma volta, adicionamos zeros
