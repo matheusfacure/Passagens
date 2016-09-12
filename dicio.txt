@@ -1,0 +1,74 @@
+ag_nome: nome do agente de viagem (categ)(str)
+ag_optMobile: otimizado para celular (bool)
+ag_stat: 
+ag_type: tipo do agente (categ)(str)
+agent: identificador único do agente (categ)(int)
+col_hour: hora da coleta (int)
+col_isds: horário de verão da coleta (int)
+col_mday: dia de mês da coleta (int)
+col_min: minuto da coleta (int)
+col_mon: mês da coleta (int)
+col_sec: segundo da coleta (int)
+col_wday: dia da semana da coleta (int)
+col_yday: dia do ano da colete (int)
+col_year: ano da coleta (int)
+ida_dest_nome: nome do destino da ida (categ)(str) 
+ida_dest_tipo: tipo do destino da ida (categ)(str)
+ida_or_nome: nome da origem da ida (categ)(str)
+ida_or_tipo: tipo da origem da ida (categ)(str)
+inId: identificador único do trecho de chegada (str)
+in_carr1: 
+in_carr2:
+in_carr3:
+in_chegada: hora da chegada da volta (datetime64)
+in_desStat: identificador único da estação de chegada da volta (categ)(int)
+in_dura: duração da viagem de volta (int)
+in_jMode: modo da viagem (categ)(str)
+in_opCarr1:
+in_opCarr2:
+in_opCarr3:
+in_orStat: identificador único da estação de saída da volta (categ)(int)
+in_saida: hora da saida da volta (datetime64)
+in_stop1: número de paradas 1 da volta (float)
+in_stop2: número de paradas 2 da volta (float)
+in_stop3: número de paradas 3 da volta (float)
+outId: identificador único do trecho de saida (str)
+out_carr1:
+out_carr2:
+out_carr3:
+out_chegada: hora da chegada da ida (datetime64)
+out_desStat: identificador único da estação de chegada da ida (categ)(int)
+out_dura: duração da viagem de ida (int)
+out_jMode:
+out_opCarr1:
+out_opCarr2:
+out_opCarr3:
+out_orStat: identificador único da estação de saída da ida (categ)(int)
+out_saida: hora da saida da ida (datetime64)
+out_stop1: número de paradas 1 da ida (float)
+out_stop2: número de paradas 2 da ida (float)
+out_stop3: número de paradas 3 da ida (float)
+preco: preço da viagem (float)
+qAgInMin:
+volta_dest_nome: nome do destino de volta (categ)(str)
+volta_dest_tipo: tipo do destino de volta (categ)(str)
+volta_or_nome: nome da origem da volta (categ)(str)
+volta_or_tipo: tipo da origem da volta (categ)(str)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
