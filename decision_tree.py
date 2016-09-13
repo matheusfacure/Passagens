@@ -10,14 +10,14 @@ import pandasql
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error
 from sklearn import tree, grid_search
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostRegressor
 
 from process_skyscanner import load_CSVs
 
 # carrega os arquvios
 t0 = time()
 path = '/media/matheus/EC2604622604305E/data/Passagens/CSV_Format/BSB-VCP*.csv'
-df = load_CSVs(path, max_files = 1	, categ_as_int = True)
+df = load_CSVs(path, max_files = 5, categ_as_int = True)
 print("Tempo para carregar os dados:", round(time()-t0, 3), "s\n")
 # pp(df.columns.to_series().groupby(df.dtypes).groups)
 	
@@ -63,15 +63,39 @@ X_train, X_test = train.drop('preco', 1), test.drop('preco', 1)
 
 
 # faz o regressor
+print('Treinando uma decision tree otimizada com GridSearchCV()...')
 parameters = {'min_samples_split': [2, 5, 10, 15, 20, 25, 30],
-				'max_depth': [10, 15, 20, 25, 30, 35, 50]}
+				'max_depth': [15, 20, 25, 30, 35, 40, 50]}
 regr = grid_search.GridSearchCV(tree.DecisionTreeRegressor(), parameters)
 
 # treinando o regressor
 t0 = time()
 regr = regr.fit(X_train, y_train)
+best_parm = regr.best_params_
 print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
-print('Melhores parametros : %r' % regr.best_params_)
+print('Melhores parametros : %r' % best_parm)
+
+# testando o regressor
+t0 = time()	
+pred = regr.predict(X_test)
+print("Tempo para testar:", round(time()-t0, 3), "s")
+
+r2 = r2_score(y_test, pred)
+print('R² é: ', r2)
+
+me_abs_err = mean_absolute_error(y_test, pred)
+print('Erro absoluto médio é: ± R$ %.2f \n\n' % round(me_abs_err, 2))
+
+
+
+# treinando o regressor com boosting
+print('Treinando a mesma decision tree com Ada Boosting...')
+par1 , par2 = best_parm['min_samples_split'], best_parm['max_depth']
+regr = tree.DecisionTreeRegressor(min_samples_split = par1, max_depth = par2)
+regr = AdaBoostRegressor(regr, n_estimators = 300)
+regr = regr.fit(X_train, y_train)
+print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
+
 
 # testando o regressor
 t0 = time()	
@@ -83,3 +107,4 @@ print('R² é: ', r2)
 
 me_abs_err = mean_absolute_error(y_test, pred)
 print('Erro absoluto médio é: ± R$ %2f \n\n' % round(me_abs_err, 2))
+print('-------------------------------------------------------------\n\n\n')
