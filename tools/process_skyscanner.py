@@ -7,6 +7,7 @@ import pandas as pd
 from sys import argv, exit
 from glob import glob
 from pprint import pprint as pp
+import random
 
 
 def clean_none(data):
@@ -194,8 +195,12 @@ def process(jsons):
 	return df
 
 
-def load_CSVs(path):
+def load_CSVs(path, max_files='All', categ_as_int = False):
 	allFiles = glob(path)
+	random.shuffle(allFiles)
+	if max_files != 'All':
+		allFiles = allFiles[:max_files]
+	print("Carregando %d arquivos..." % len(allFiles))
 	frame = pd.DataFrame()
 	list_ = []
 	for file_ in allFiles:
@@ -220,6 +225,9 @@ def load_CSVs(path):
 
 	for var in categ_var:
 		frame[var] = df[var].astype('category')
+		if categ_as_int:
+			frame[var] = frame[var].cat.codes
+		
 
 	date_time_var = ['out_saida', 'out_chegada', 'in_saida', 'in_chegada']
 
