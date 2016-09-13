@@ -187,6 +187,9 @@ def process(jsons):
 	 'volta_or_nome', 'volta_or_tipo', 'volta_dest_nome', 'volta_dest_tipo',
 	 'col_year', 'col_mon', 'col_mday', 'col_hour', 'col_min', 'col_sec',
 	  'col_wday', 'col_yday', 'col_isds']
+
+
+
 	
 	return df
 
@@ -218,8 +221,10 @@ def load_CSVs(path):
 	for var in categ_var:
 		frame[var] = df[var].astype('category')
 
+	date_time_var = ['out_saida', 'out_chegada', 'in_saida', 'in_chegada']
 
-
+	for var in date_time_var:
+		frame[var] = np.array(frame[var], dtype='datetime64')
 
 	return frame
 
