@@ -17,7 +17,7 @@ from process_skyscanner import load_CSVs
 # carrega os arquvios
 t0 = time()
 path = '/media/matheus/EC2604622604305E/data/Passagens/CSV_Format/BSB-VCP*.csv'
-df = load_CSVs(path, max_files = 5, categ_as_int = True)
+df = load_CSVs(path, max_files = 'All', categ_as_int = True)
 print("Tempo para carregar os dados:", round(time()-t0, 3), "s\n")
 # pp(df.columns.to_series().groupby(df.dtypes).groups)
 	
@@ -63,7 +63,8 @@ X_train, X_test = train.drop('preco', 1), test.drop('preco', 1)
 
 
 # faz o regressor
-print('Treinando uma decision tree otimizada com GridSearchCV()...')
+print('Treinando uma decision tree otimizada com busca euxaustiva de'\
+		'parametros...\n')
 parameters = {'min_samples_split': [2, 5, 10, 15, 20, 25, 30],
 				'max_depth': [15, 20, 25, 30, 35, 40, 50]}
 regr = grid_search.GridSearchCV(tree.DecisionTreeRegressor(), parameters)
@@ -81,15 +82,16 @@ pred = regr.predict(X_test)
 print("Tempo para testar:", round(time()-t0, 3), "s")
 
 r2 = r2_score(y_test, pred)
-print('R² é: ', r2)
+print('R² é: %.4f' % r2)
 
 me_abs_err = mean_absolute_error(y_test, pred)
-print('Erro absoluto médio é: ± R$ %.2f \n\n' % round(me_abs_err, 2))
+print('Erro absoluto médio é: ± R$ %.2f' % round(me_abs_err, 2))
+print('Desvio padrão do erro: %.2f \n\n' % np.std(np.abs(y_test - pred)))
 
 
 
 # treinando o regressor com boosting
-print('Treinando a mesma decision tree com Ada Boosting...')
+print('Treinando a mesma decision tree com Ada Boosting...\n')
 par1 , par2 = best_parm['min_samples_split'], best_parm['max_depth']
 regr = tree.DecisionTreeRegressor(min_samples_split = par1, max_depth = par2)
 regr = AdaBoostRegressor(regr, n_estimators = 300)
@@ -103,8 +105,9 @@ pred = regr.predict(X_test)
 print("Tempo para testar:", round(time()-t0, 3), "s")
 
 r2 = r2_score(y_test, pred)
-print('R² é: ', r2)
+print('R² é: %.4f' % r2)
 
 me_abs_err = mean_absolute_error(y_test, pred)
-print('Erro absoluto médio é: ± R$ %2f \n\n' % round(me_abs_err, 2))
-print('-------------------------------------------------------------\n\n\n')
+print('Erro absoluto médio é: ± R$ %.2f' % round(me_abs_err, 2))
+print('Desvio padrão do erro: %.2f' % np.std(np.abs(y_test - pred)))
+print('--------------------------------------------------\n\n')
