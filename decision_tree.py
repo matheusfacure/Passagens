@@ -16,6 +16,7 @@ from sklearn.decomposition import PCA
 
 from process_skyscanner import load_CSVs
 
+
 def test_regr(fit_regr, X_test, y_test):
 	t0 = time()	
 	pred = fit_regr.predict(X_test)
@@ -37,7 +38,7 @@ def test_regr(fit_regr, X_test, y_test):
 # carrega os arquvios
 t0 = time()
 path = '/media/matheus/EC2604622604305E/data/Passagens/CSV_Format/BSB-VCP*.csv'
-df = load_CSVs(path, max_files = 5, categ_as_int = True)
+df = load_CSVs(path, max_files = 2, categ_as_int = True)
 print("Tempo para carregar os dados:", round(time()-t0, 3), "s\n")
 # pp(df.columns.to_series().groupby(df.dtypes).groups)
 	
@@ -54,26 +55,34 @@ FROM df
 df = pandasql.sqldf(q.lower(), locals())
 
 
-# cria novas variáveis
+# novas variáveis
+
+print('Adicionando novas variáveis')
 
 # variáveis de tempo
 for t_var in ['out_chegada', 'out_saida', 'in_saida', 'in_chegada']:
 	df[t_var] = pd.to_datetime(df[t_var], format='%Y-%m-%d %H:%M:%S')
 	df[t_var + '_hour'] = df[t_var].dt.hour
-	df[t_var + '_wday'] = df[t_var].dt.dayofweek
 	df[t_var + '_yday'] = df[t_var].dt.day
-	df.drop(t_var, axis=1, inplace=True)
 
-print("Dimensões da matriz: ", df.shape, '\n')
+	df[t_var + '_wday'] = df[t_var].dt.dayofweek
+	df[t_var + '_wday'] = df[t_var + '_wday'].astype('category')
+	df[t_var + '_is_wend'] = df[t_var].dt.dayofweek > 4
+	
+	df.drop(t_var, axis = 1, inplace = True)
 
-# Pré-processamento
+
+
+
+df = pd.get_dummies(df)
+
 # lida com NaNs
 for var in df.columns:
 	n_nans = sum(pd.isnull(df[var]))
 
-print('\nSubstituindo os NaNs por %d...' % 0)
 df = df.fillna(0)
-df = pd.get_dummies(df)
+
+print("Dimensões da matriz: ", df.shape, '\n')
 
 train, test = train_test_split(df, test_size = 0.2, random_state = 123)
 y_train, y_test = train['preco'], test['preco']
@@ -94,30 +103,26 @@ X_train = X_train[tot_outliers]
 
 
 # PCA
-n_comp = 15
-print('Aplicando alálise de componentes principais (PCA) com %d componentes...'%
-	n_comp)
-pca = PCA(n_components = n_comp)
-pca.fit(X_train)
-X_train = pca.transform(X_train)
-X_test = pca.transform(X_test)
+# n_comp = 5
+# print('Aplicando alálise de componentes principais (PCA) com %d componentes...'%
+# n_comp)
+# pca = PCA(n_components = n_comp)
+# pca.fit(X_train)
+# X_train = pca.transform(X_train)
+# X_test = pca.transform(X_test)
 # print('Componentes principais: ', pca.explained_variance_ratio_ )
 
 
 print('Tempo para filtrar os dados:', round(time()-t0, 3), 's\n')
 print('Dimensões da matriz após filtrar:' , X_train.shape)
 
-# vizualiza os dados
-# plt.hist(y_test, 50, facecolor='green')
-# plt.show()
 
 
 # faz o regressor
 print('Treinando uma árvore de decisão otimizada com busca euxaustiva de '\
 		'parâmetros...\n')
-parameters = {'min_samples_split': [2, 5, 10, 15, 20, 25, 30],
-				'max_depth': [15, 20, 25, 30, 35, 40, 50],
-				'min_weight_fraction_leaf': [0.0, 0.3, 0.5]}
+parameters = {'min_samples_split': [5, 10, 15, 20, 25, 30],
+				'max_depth': [20, 25, 30, 35, 45]}
 regr = grid_search.GridSearchCV(tree.DecisionTreeRegressor(), parameters)
 
 # treinando o regressor
@@ -137,7 +142,7 @@ test_regr(regr, X_test, y_test)
 print('Treinando a mesma árvore com adaptative boosting...\n')
 par1 , par2 = best_parm['min_samples_split'], best_parm['max_depth']
 regr = tree.DecisionTreeRegressor(min_samples_split = par1, max_depth = par2)
-regr = AdaBoostRegressor(regr, n_estimators = 200)
+regr = AdaBoostRegressor(regr, n_estimators = 300)
 regr = regr.fit(X_train, y_train)
 print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
 
@@ -145,4 +150,9 @@ print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
 # testando o regressor
 test_regr(regr, X_test, y_test)
 
-print('--------------------------------------------------\n\n')
+
+# vizualiza os dados
+
+
+plt.hist(y_test, 50, facecolor='green')
+plot1.show()
