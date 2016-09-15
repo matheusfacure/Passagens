@@ -6,18 +6,37 @@ import re
 from pprint import pprint as pp
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import pandasql
 from sklearn.cross_validation import train_test_split
-from sklearn.metrics import r2_score, mean_absolute_error
+from sklearn.metrics import r2_score
 from sklearn import tree, grid_search
 from sklearn.ensemble import AdaBoostRegressor
 
 from process_skyscanner import load_CSVs
 
+def test_regr(fit_regr, X_test, y_test):
+	t0 = time()	
+	pred = fit_regr.predict(X_test)
+	print("Tempo para testar:", round(time()-t0, 3), "s")
+
+	r2 = r2_score(y_test, pred)
+	print('R² é: %.3f' % r2)
+
+	abs_err = np.abs(y_test - pred)
+	print('Erro absoluto médio é: ± R$ %.2f' % np.mean(abs_err))
+	print('Desvio padrão do erro absoluto: %.2f' % np.std(abs_err))
+	
+	err_rel = np.abs((y_test - pred) / y_test)
+	print('Erro relativo médio é: %.2f' % np.mean(err_rel), r'%')
+	print('Desvio padrão do erro relativo: %.3f\n' % np.std(err_rel))
+
+
+
 # carrega os arquvios
 t0 = time()
 path = '/media/matheus/EC2604622604305E/data/Passagens/CSV_Format/BSB-VCP*.csv'
-df = load_CSVs(path, max_files = 'All', categ_as_int = True)
+df = load_CSVs(path, max_files = 3, categ_as_int = True)
 print("Tempo para carregar os dados:", round(time()-t0, 3), "s\n")
 # pp(df.columns.to_series().groupby(df.dtypes).groups)
 	
@@ -63,8 +82,8 @@ X_train, X_test = train.drop('preco', 1), test.drop('preco', 1)
 
 
 # faz o regressor
-print('Treinando uma decision tree otimizada com busca euxaustiva de'\
-		'parametros...\n')
+print('Treinando uma árvore de decisão otimizada com busca euxaustiva de '\
+		'parâmetros...\n')
 parameters = {'min_samples_split': [2, 5, 10, 15, 20, 25, 30],
 				'max_depth': [15, 20, 25, 30, 35, 40, 50]}
 regr = grid_search.GridSearchCV(tree.DecisionTreeRegressor(), parameters)
@@ -77,37 +96,19 @@ print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
 print('Melhores parametros : %r' % best_parm)
 
 # testando o regressor
-t0 = time()	
-pred = regr.predict(X_test)
-print("Tempo para testar:", round(time()-t0, 3), "s")
-
-r2 = r2_score(y_test, pred)
-print('R² é: %.4f' % r2)
-
-me_abs_err = mean_absolute_error(y_test, pred)
-print('Erro absoluto médio é: ± R$ %.2f' % round(me_abs_err, 2))
-print('Desvio padrão do erro: %.2f \n\n' % np.std(np.abs(y_test - pred)))
-
+test_regr(regr, X_test, y_test)
 
 
 # treinando o regressor com boosting
-print('Treinando a mesma decision tree com Ada Boosting...\n')
+print('Treinando a mesma árvore com adaptative boosting...\n')
 par1 , par2 = best_parm['min_samples_split'], best_parm['max_depth']
 regr = tree.DecisionTreeRegressor(min_samples_split = par1, max_depth = par2)
-regr = AdaBoostRegressor(regr, n_estimators = 300)
+regr = AdaBoostRegressor(regr, n_estimators = 100)
 regr = regr.fit(X_train, y_train)
 print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
 
 
 # testando o regressor
-t0 = time()	
-pred = regr.predict(X_test)
-print("Tempo para testar:", round(time()-t0, 3), "s")
+test_regr(regr, X_test, y_test)
 
-r2 = r2_score(y_test, pred)
-print('R² é: %.4f' % r2)
-
-me_abs_err = mean_absolute_error(y_test, pred)
-print('Erro absoluto médio é: ± R$ %.2f' % round(me_abs_err, 2))
-print('Desvio padrão do erro: %.2f' % np.std(np.abs(y_test - pred)))
 print('--------------------------------------------------\n\n')
