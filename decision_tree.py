@@ -7,7 +7,6 @@ from pprint import pprint as pp
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import pandasql
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import r2_score
 from sklearn import tree, grid_search
@@ -38,8 +37,13 @@ def test_regr(fit_regr, X_test, y_test):
 
 # carrega os arquvios
 t0 = time()
+
+var_list= ['preco', 'col_wday', 'col_hour', 'col_yday', 'out_stop1', 'in_stop1', 
+ 'agent', 'out_orStat', 'out_desStat', 'ag_type', 'in_carr1', 'out_carr1',
+ 'out_chegada', 'out_saida', 'in_saida', 'in_chegada']
+
 path = '/media/matheus/EC2604622604305E/data/Passagens/CSV_Format/BSB-VCP*.csv'
-df = load_CSVs(path, max_files = 7, categ_as_int = True)
+df = load_CSVs(path, var_list, max_files = 2)
 print("Tempo para carregar os dados:", round(time()-t0, 3), "s\n")
 # pp(df.columns.to_series().groupby(df.dtypes).groups)
 	
@@ -47,13 +51,6 @@ print("Tempo para carregar os dados:", round(time()-t0, 3), "s\n")
 # Filtra a df apenas com as variáveis selecionadas
 t0 = time()
 
-q = """
-SELECT preco, col_wday, col_hour, col_yday, out_stop1, in_stop1, 
- agent, out_orStat, out_desStat, ag_type, in_carr1, out_carr1,
- out_chegada, out_saida, in_saida, in_chegada
-FROM df
-"""
-df = pandasql.sqldf(q.lower(), locals())
 
 
 # novas variáveis

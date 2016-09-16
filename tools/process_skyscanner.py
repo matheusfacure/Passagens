@@ -8,6 +8,7 @@ from sys import argv, exit
 from glob import glob
 from pprint import pprint as pp
 import random
+import pandasql
 
 
 def clean_none(data):
@@ -189,32 +190,18 @@ def process(jsons):
 	 'col_year', 'col_mon', 'col_mday', 'col_hour', 'col_min', 'col_sec',
 	  'col_wday', 'col_yday', 'col_isds']
 
-
-
-	
 	return df
 
 
-def load_CSVs(path, max_files='All', categ_as_int = False):
+def load_CSVs(path, var_list, max_files='All'):
 	allFiles = glob(path)
 	random.shuffle(allFiles)
 	if max_files != 'All':
 		allFiles = allFiles[:max_files]
-	print("Carregando %d arquivos..." % len(allFiles))
+	print("Carregando %d arquivo(s)..." % len(allFiles))
 	frame = pd.DataFrame()
 	list_ = []
-	for file_ in allFiles:
-		
-		if file_[-4:] != '.csv':
-			print('Arquivo %s não é do formato esperado' % file_)
-			print("Arquivo deve ser uma df no formato csv, sep = ';'")
-			exit(1)
 
-		df = pd.read_csv(file_, sep = ';', header=0)
-		list_.append(df)
-	frame = pd.concat(list_, ignore_index=True)
-
-	# converte para os tipos certos
 	categ_var = ['ag_type', 'agent', 'out_orStat', 'out_desStat', 'out_opCarr1',
 		'out_opCarr2', 'out_opCarr3', 'in_opCarr1', 'in_opCarr2', 'in_opCarr3',
 		'in_orStat', 'in_desStat', 'in_carr1', 'in_carr2', 'in_carr3',
@@ -222,17 +209,37 @@ def load_CSVs(path, max_files='All', categ_as_int = False):
 		'in_orStat', 'ida_or_nome', 'ida_or_tipo', 'ida_dest_tipo',
 		'ida_dest_nome', 'volta_or_nome', 'volta_or_tipo', 'volta_dest_tipo',
 		'volta_dest_nome', 'ag_nome', 'ag_stat']
-
-	for var in categ_var:
-		frame[var] = df[var].astype('category')
-		if categ_as_int:
-			frame[var] = frame[var].cat.codes
-		
-
+	
 	date_time_var = ['out_saida', 'out_chegada', 'in_saida', 'in_chegada']
+	
 
-	for var in date_time_var:
-		frame[var] = np.array(frame[var], dtype='datetime64')
+	for file_ in allFiles:
+		
+		# defensivo
+		if file_[-4:] != '.csv':
+			print('Arquivo %s não é do formato esperado' % file_)
+			print("Arquivo deve ser uma df no formato csv, sep = ';'")
+			exit(1)
+
+
+		df = pd.read_csv(file_, sep = ';', header=0)
+		
+		pp(df.columns.to_series().groupby(df.dtypes).groups)
+
+		# converte para os tipos certos
+		for var in categ_var:
+			df[var] = df[var].astype('category')
+
+		for var in date_time_var:
+			df[var] = np.array(df[var], dtype='datetime64')
+
+
+		df = df[var_list] # seleciona apenas variáveis especificadas
+		
+		list_.append(df)
+
+	frame = pd.concat(list_, ignore_index=True)
+
 
 	return frame
 
