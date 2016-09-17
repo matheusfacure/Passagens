@@ -8,7 +8,6 @@ from sys import argv, exit
 from glob import glob
 from pprint import pprint as pp
 import random
-import pandasql
 
 
 def clean_none(data):
@@ -193,7 +192,7 @@ def process(jsons):
 	return df
 
 
-def load_CSVs(path, var_list, max_files='All'):
+def load_CSVs(path, var_list, max_days='All'):
 	allFiles = glob(path)
 	random.shuffle(allFiles)
 	if max_files != 'All':
@@ -221,29 +220,56 @@ def load_CSVs(path, var_list, max_files='All'):
 			print("Arquivo deve ser uma df no formato csv, sep = ';'")
 			exit(1)
 
-
 		df = pd.read_csv(file_, sep = ';', header=0)
 		
-		pp(df.columns.to_series().groupby(df.dtypes).groups)
-
-		# converte para os tipos certos
-		for var in categ_var:
-			df[var] = df[var].astype('category')
-
-		for var in date_time_var:
-			df[var] = np.array(df[var], dtype='datetime64')
-
-
 		df = df[var_list] # seleciona apenas variáveis especificadas
 		
 		list_.append(df)
 
 	frame = pd.concat(list_, ignore_index=True)
+		
+	vars_in_frame = frame.columns
 
+	# converte para os tipos certos
+	for var in categ_var:
+		if var in vars_in_frame:
+			frame[var] = frame[var].astype('category')
+
+	for var in date_time_var:
+		if var in vars_in_frame:
+			frame[var] = np.array(frame[var], dtype='datetime64')
 
 	return frame
 
 
+def train_test_split(frame, folds = 0):
+	frame.sort_values(by=['col_yday'], ascending=[True], inplace = True)
+
+	days = frame.col_yday.unique()
+	n_days = len(days)
+
+	# seleciona o ultimo dia como teste final
+	final_test = frame[frame['col_yday'] == days[-1]]
+	n_days -= 1
+	
+	train = []
+
+	# faz os folds
+	if folds and n_days > 2 and n_days % folds == 0:
+		days_per_fold = int(n_days / folds)
+		for i in range(0, n_days, days_per_fold):
+			
+			sv = (frame['col_yday'] >= days[i]) 
+			sv = sv & (frame['col_yday'] <= days[i + days_per_fold - 1])
+			print('Fold: ', frame[sv].col_yday.unique())
+			train.append(frame[sv])
+
+	else:
+		print('0 folds criados.')
+		print('Qtd de dias: %d' % len(days))
+		train.append( frame[frame['col_yday'] != days[-1]] )
+
+	return final_test, train
 
 
 if __name__ == '__main__':
