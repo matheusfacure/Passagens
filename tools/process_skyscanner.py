@@ -252,16 +252,23 @@ def load_CSVs(path, var_list, max_files='All', n_days = 5):
 	return frame
 
 
-def train_test_split(frame, folds = 0):
+def train_test_split(frame):
 	frame.sort_values(by=['col_yday'], ascending=[True], inplace = True)
 
 	days = frame.col_yday.unique()
-	n_days = len(days)
 
 	# seleciona o ultimo dia como teste final
 	final_test = frame[frame['col_yday'] == days[-1]]
-	n_days -= 1
+	train = frame[frame['col_yday'] != days[-1]]
+
+	return train, final_test
+
+
+def make_folds(training_df, folds = 3):
 	
+	days = training_df.col_yday.unique()
+	n_days = len(days)
+
 	train = []
 
 	# faz os folds
@@ -269,17 +276,18 @@ def train_test_split(frame, folds = 0):
 		days_per_fold = int(n_days / folds)
 		for i in range(0, n_days, days_per_fold):
 			
-			sv = (frame['col_yday'] >= days[i]) 
-			sv = sv & (frame['col_yday'] <= days[i + days_per_fold - 1])
-			print('Fold: ', frame[sv].col_yday.unique())
-			train.append(frame[sv])
+			sv = (training_df['col_yday'] >= days[i]) 
+			sv = sv & (training_df['col_yday'] <= days[i + days_per_fold - 1])
+			print('Fold: ', training_df[sv].col_yday.unique())
+			train.append(training_df[sv])
 
 	else:
-		print('0 folds criados.')
-		print('Qtd de dias: %d' % len(days))
-		train.append( frame[frame['col_yday'] != days[-1]] )
+		print('Não conseguiu criar os folds')
+		return training_df
 
-	return final_test, train
+	return train 
+
+
 
 
 if __name__ == '__main__':
