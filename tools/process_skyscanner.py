@@ -192,9 +192,15 @@ def process(jsons):
 	return df
 
 
-def load_CSVs(path, var_list, max_days='All'):
+def load_CSVs(path, var_list, max_files='All', n_days = 5):
+	# defensivo
+	if 'col_yday' not in var_list:
+		print('col_yday deve estar na lista de variáveis.')
+		exit(1)
+
 	allFiles = glob(path)
 	random.shuffle(allFiles)
+
 	if max_files != 'All':
 		allFiles = allFiles[:max_files]
 	print("Carregando %d arquivo(s)..." % len(allFiles))
@@ -211,19 +217,23 @@ def load_CSVs(path, var_list, max_days='All'):
 	
 	date_time_var = ['out_saida', 'out_chegada', 'in_saida', 'in_chegada']
 	
+	seen_days = []
+	while len(seen_days) + 1 <= n_days:
+		file = allFiles.pop()
 
-	for file_ in allFiles:
-		
 		# defensivo
-		if file_[-4:] != '.csv':
-			print('Arquivo %s não é do formato esperado' % file_)
+		if file[-4:] != '.csv':
+			print('Arquivo %s não é do formato esperado' % file)
 			print("Arquivo deve ser uma df no formato csv, sep = ';'")
 			exit(1)
 
-		df = pd.read_csv(file_, sep = ';', header=0)
-		
+		df = pd.read_csv(file, sep = ';', header=0)
+			
 		df = df[var_list] # seleciona apenas variáveis especificadas
-		
+			
+		if df.col_yday.unique()[0] not in seen_days:
+			seen_days.append(df.col_yday.unique()[0])
+
 		list_.append(df)
 
 	frame = pd.concat(list_, ignore_index=True)
