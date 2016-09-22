@@ -1,38 +1,19 @@
 import sys
 from time import time
 sys.path.append("./tools/")
-import datetime as dt
-import re
 from pprint import pprint as pp
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cross_validation import train_test_split
-from sklearn.metrics import r2_score
 from sklearn import tree, grid_search
 from sklearn.ensemble import AdaBoostRegressor
-from sklearn.decomposition import PCA
+from sklearn.learning_curve import learning_curve
 
-from process_skyscanner import load_CSVs
+from process_skyscanner import load_CSVs, data_split
+from plot_learning_curve import plot_learning_curve
+from tranfs_train_test import test_regr, applyPCA, remove_outliers
 
-
-def test_regr(fit_regr, X_test, y_test):
-	t0 = time()	
-	pred = fit_regr.predict(X_test)
-	print("Tempo para testar:", round(time()-t0, 3), "s")
-
-	r2 = r2_score(y_test, pred)
-	print('R² é: %.3f' % r2)
-
-	abs_err = np.abs(y_test - pred)
-	print('Erro absoluto médio é: ± R$ %.2f' % np.mean(abs_err))
-	print('Desvio padrão do erro absoluto: %.2f' % np.std(abs_err))
-	
-	err_rel = np.abs((y_test - pred) / y_test) * 100
-	print('Erro relativo médio é: %.2f' % np.mean(err_rel), r'%')
-	print('Desvio padrão do erro relativo: %.3f\n' % np.std(err_rel))
-
-	return pred, abs_err, err_rel
 
 
 # carrega os arquvios
@@ -43,20 +24,15 @@ var_list= ['preco', 'col_wday', 'col_hour', 'col_yday', 'out_stop1', 'in_stop1',
  'out_chegada', 'out_saida', 'in_saida', 'in_chegada']
 
 path = '/media/matheus/EC2604622604305E/data/Passagens/CSV_Format/BSB-VCP*.csv'
-df = load_CSVs(path, var_list, max_files = 2)
+df = load_CSVs(path, var_list, max_files = 5, n_days = 2)
 print("Tempo para carregar os dados:", round(time()-t0, 3), "s\n")
+print('Dias de coleta selecionados: ', df.col_yday.unique())
 # pp(df.columns.to_series().groupby(df.dtypes).groups)
 	
 
-# Filtra a df apenas com as variáveis selecionadas
-t0 = time()
-
-
-
 # novas variáveis
-
+t0 = time()
 print('Adicionando novas variáveis')
-
 
 # variáveis de tempo
 for t_var in ['out_chegada', 'out_saida', 'in_saida', 'in_chegada']:
@@ -73,31 +49,37 @@ for t_var in ['out_chegada', 'out_saida', 'in_saida', 'in_chegada']:
 
 df = pd.get_dummies(df)
 
-# lida com NaNs
+
+
+# lidando com NaNs
 for var in df.columns:
 	n_nans = sum(pd.isnull(df[var]))
 
 df = df.fillna(0)
+print("Dimensões da matriz: ", df.shape)
 
-print("Dimensões da matriz: ", df.shape, '\n')
 
+
+# separando treino e teste
+#train, test = data_split(df, 2)
 train, test = train_test_split(df, test_size = 0.2, random_state = 123)
 y_train, y_test = train['preco'], test['preco']
 X_train, X_test = train.drop('preco', 1), test.drop('preco', 1)
 
 
+# trasfonrma dia da coleta em delta d_coleta d_viagem
+X_train['col_yday'] =  X_train['out_saida_yday'] - X_train['col_yday']
+X_train.drop('col_yday', axis = 1, inplace = True)
+X_test['col_yday'] =  X_test['out_saida_yday'] - X_test['col_yday']
+X_test.drop('col_yday', axis = 1, inplace = True)
+
+
 # lindando com outliers
-top_outliers = y_train > np.mean(y_train) + 3 * np.std(y_train)
-print('Temos %d outliers no topo' % sum(top_outliers))
-print('Isso equivale à %.3f' % (sum(top_outliers) / len(y_train)), r'%') 
-botom_outliers = y_train < np.mean(y_train) - 3 * np.std(y_train)
-print('Temos %d outliers na base' % sum(botom_outliers)) 
-print('Isso equivale à %.3f' % (sum(botom_outliers) / len(y_train)), r'%') 
-tot_outliers = np.logical_not(np.logical_or(botom_outliers, top_outliers))
+X_train, y_train = remove_outliers(X_train, y_train, n_std = 3, verbose = True)
 
-y_train = y_train[tot_outliers]
-X_train = X_train[tot_outliers]
 
+# PCA
+X_train, X_test = applyPCA(X_train, X_test, 40)
 
 print('Tempo para filtrar os dados:', round(time()-t0, 3), 's\n')
 print('Dimensões da matriz após filtrar:' , X_train.shape)
@@ -105,16 +87,36 @@ print('Dimensões da matriz após filtrar:' , X_train.shape)
 
 # faz o regressor
 print('\nTreinando uma árvore de decisão otimizada com busca euxaustiva de '\
-		'parâmetros...\n')
-parameters = {'min_samples_split': [5, 10, 15, 20, 25, 30],
-				'max_depth': [20, 25, 30, 35, 45]}
-regr = grid_search.GridSearchCV(tree.DecisionTreeRegressor(), parameters)
+			   'parâmetros...\n')
 
-# treinando o regressor
+parameters = {'min_samples_split': [25, 50, 100],
+			   'max_depth': [15, 25, 35]}
+#regr = grid_search.GridSearchCV(tree.DecisionTreeRegressor(), parameters)
+regr = tree.DecisionTreeRegressor(min_samples_split = 5, max_depth = 25)
+
+
+# plotando curvas de aprendizagem
+# t0 = time()
+# title = "Learning Curves"
+# plot_learning_curve(regr, title, X_train, y_train, cv = 5, n_jobs=4)
+# print('Tempo para plotar as curvas:', round(time()-t0, 3), 's\n')
+#plt.show()
+
+
+# treinando e testando o regressor
+t0 = time()
 regr = regr.fit(X_train, y_train)
-best_parm = regr.best_params_
 print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
-print('Melhores parametros : %r' % best_parm)
+test_regr(regr, X_test, y_test)
 
-# testando o regressor
-pred, abs_err, err_rel = test_regr(regr, X_test, y_test)
+
+
+# faz o regressor
+print('\nTreinando uma árvore de decisão otimizada com boosting')
+regr = tree.DecisionTreeRegressor(min_samples_split = 25, max_depth = 15)
+regr = AdaBoostRegressor(regr, n_estimators = 500)
+
+# treinando e testando o regressor
+regr = regr.fit(X_train, y_train)
+print("Resultados: \nTempo para treinar:", round(time()-t0, 3), "s")
+test_regr(regr, X_test, y_test)
