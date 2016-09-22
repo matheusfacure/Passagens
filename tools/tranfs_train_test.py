@@ -10,7 +10,7 @@ def test_regr(fit_regr, X_test, y_test, verbose = True):
 	s = ''
 	
 	pred = fit_regr.predict(X_test)
-	s += "\n\nTempo para testar:" + str(round(time()-t0, 3)) + "s"
+	s += "\nTempo para testar:" + str(round(time()-t0, 3)) + "s"
 
 	r2 = r2_score(y_test, pred)
 	s += '\nR^2 é: %.3f' % r2
@@ -25,7 +25,21 @@ def test_regr(fit_regr, X_test, y_test, verbose = True):
 
 	if verbose:
 		print(s)
-
+		
+		# grid search
+		try:
+			print("Melhores parametros:", fit_regr.best_params_)
+			print('Melhor pontuações: %.2f' % fit_regr.best_score_)
+		except:
+			pass
+		
+		# DecisionTreeRegressor e AdaBoost
+		print('Variáveis mais importantes:', fit_regr.feature_importances_)
+		try:
+			pass
+		except:
+			print('hahbdkvasbclasb')
+		
 	return pred, abs_err, err_rel
 
 def applyPCA(X_train, X_test, n_components, verbose = True):
@@ -49,10 +63,10 @@ def applyPCA(X_train, X_test, n_components, verbose = True):
 	return X_train, X_test 
 
 
-def remove_outliers(X_train, y_train, verbose = True):
+def remove_outliers(X_train, y_train, n_std = 3, verbose = True):
 
-	top_outliers = y_train > np.mean(y_train) + 3 * np.std(y_train)
-	botom_outliers = y_train < np.mean(y_train) - 3 * np.std(y_train)
+	top_outliers = y_train > np.mean(y_train) + n_std * np.std(y_train)
+	botom_outliers = y_train < np.mean(y_train) - n_std * np.std(y_train)
 	
 	tot_outliers = np.logical_not(np.logical_or(botom_outliers, top_outliers))
 	
