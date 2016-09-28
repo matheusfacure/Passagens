@@ -8,7 +8,7 @@ from sys import argv, exit
 from glob import glob
 from pprint import pprint as pp
 import random
-
+random.seed(321)
 
 def clean_none(data):
 	new_data = []
@@ -203,7 +203,7 @@ def load_CSVs(path, var_list, max_files='All', n_days = 5):
 
 	if max_files != 'All':
 		allFiles = allFiles[:max_files]
-	print("Carregando %d arquivo(s)..." % len(allFiles))
+	print("Carregando %d dia(s)..." % n_days)
 	frame = pd.DataFrame()
 	list_ = []
 
@@ -213,7 +213,8 @@ def load_CSVs(path, var_list, max_files='All', n_days = 5):
 		'out_carr1', 'out_carr2', 'out_carr3', 'in_jMode', 'out_jMode',
 		'in_orStat', 'ida_or_nome', 'ida_or_tipo', 'ida_dest_tipo',
 		'ida_dest_nome', 'volta_or_nome', 'volta_or_tipo', 'volta_dest_tipo',
-		'volta_dest_nome', 'ag_nome', 'ag_stat']
+		'volta_dest_nome', 'ag_nome', 'ag_stat', 'in_stop1', 'in_stop2',
+		'in_stop3', 'out_stop1', 'out_stop2', 'out_stop3']
 	
 	date_time_var = ['out_saida', 'out_chegada', 'in_saida', 'in_chegada']
 	
@@ -252,16 +253,28 @@ def load_CSVs(path, var_list, max_files='All', n_days = 5):
 	return frame
 
 
-def train_test_split(frame):
-	frame.sort_values(by=['col_yday'], ascending=[True], inplace = True)
+def data_split(frame, shuffle = False, test_stize = 0.2, test_days = 1):
+	
+	if shuffle:
+		frame = frame.iloc[np.random.permutation(len(frame))]
+		frame = frame.reset_index(drop=True)
+		if test_stize > 1 or test_stize < 0:
+			print('Tamanho do set de teste deve ser no máximo 1')
+			exit(1)
 
-	days = frame.col_yday.unique()
+		msk = np.random.rand(len(frame)) <  1 - test_stize
+		train = frame[msk]
+		test = frame[~msk]
+	
+	else:
+		frame.sort_values(by=['col_yday'], ascending=[True], inplace = True)
+		days = frame.col_yday.unique()
 
-	# seleciona o ultimo dia como teste final
-	final_test = frame[frame['col_yday'] == days[-1]]
-	train = frame[frame['col_yday'] != days[-1]]
 
-	return train, final_test
+		test = frame.loc[frame['col_yday'].isin(days[:-test_days])]
+		train = frame.loc[~frame['col_yday'].isin(days[:-test_days])]
+
+	return train, test
 
 
 def make_folds(training_df, folds = 3):
