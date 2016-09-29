@@ -26,7 +26,8 @@ def add_leg_info_to_row(row, leg):
 	row.append(leg['JourneyMode'])
 	row.append(leg['OriginStation'])
 	row.append(leg['DestinationStation'])
-				
+	row.append(len(leg['Stops']))
+
 	for i in range(3):
 		if len(leg['Stops']) >= i + 1:
 			if leg['Stops'][i] is None:
@@ -114,13 +115,13 @@ def json_to_lists(dicio):
 	# [preço(0), QAgInMin(1), Agent(2), InId(3), OutId(4),
 	# ag_nome(5),  ag_optMobile(6), ag_stat(7), ag_type(8)
 	# out_saida(9), out_chegada(10), out_dura(11), out_jMode(12),
-	# 	out_orStat(13), out_desStat(14), out_stop1(15), out_stop2(16),
-	#	out_stop3(17), out_OpCarr1(18), out_OpCarr2(19), out_OpCarr3(20),
-	#	out_carr1(21), out_carr2(22), out_carr3(23)
-	# in_saida(24), in_chegada(25), in_dura(26)_, in_jMode(27), in_orStat(28),
-	#	in_desStat(29), in_stop1(30), in_stop2(31), in_stop3(32),
-	#	in_OpCarr1(33), in_OpCarr2(34), in_OpCarr3(35), in_carr1(36),
-	#	in_carr2(37), in_carr3(38)]
+	# 	out_orStat(13), out_desStat(14), out_stops(15), out_stop1(16),
+	#	out_stop2(17), out_stop3(18), out_OpCarr1(19), out_OpCarr2(20),
+	#	out_OpCarr3(21), out_carr1(22), out_carr2(23), out_carr3(24)
+	# in_saida(25), in_chegada(26), in_dura(27)_, in_jMode(28), in_orStat(29),
+	#	in_desStat(30), out_stops(31), in_stop1(32), in_stop2(33), in_stop3(34),
+	#	in_OpCarr1(35), in_OpCarr2(36), in_OpCarr3(37), in_carr1(38),
+	#	in_carr2(39), in_carr3(40)]
 		
 
 	# limpa os places e adiciona infos relevantes às observações
@@ -129,17 +130,17 @@ def json_to_lists(dicio):
 		add_place_info_to_row(dicio, row, 14)
 
 		if volta_check:
-			add_place_info_to_row(dicio, row, 28)
 			add_place_info_to_row(dicio, row, 29)
+			add_place_info_to_row(dicio, row, 30)
 		else:
 			for unused in range(4):
 				row.append('NaN')
 
 	# row no formato:
-	# row + [ida_or_nome(39), ida_or_tipo(40), ida_dest_nome(41),
-	#	ida_dest_tipo(42)
-	# volta_or_nome(42), volta_or_tipo(44), volta_dest_nome(45),
-	#	volta_dest_tipo(46)]
+	# row + [ida_or_nome(41), ida_or_tipo(42), ida_dest_nome(43),
+	#	ida_dest_tipo(44)
+	# volta_or_nome(45), volta_or_tipo(46), volta_dest_nome(47),
+	#	volta_dest_tipo(48)]
 
 	# limpa os places e adiciona infos relevantes às observações
 	for row in rows:
@@ -147,8 +148,8 @@ def json_to_lists(dicio):
 			row.append(t_coleta)
 	
 	# row no formato:
-	# row + [col_year(47), col_mon(48), col_mday(49), col_hour(50), col_min(51),
-	#	col_sec(52), col_wday(53), col_yday(54), col_isds(55)]
+	# row + [col_year(49), col_mon(50), col_mday(51), col_hour(52), col_min(53),
+	#	col_sec(54), col_wday(55), col_yday(56), col_isds(57)]
 	
 	return rows
 
@@ -179,15 +180,16 @@ def process(jsons):
 	df.columns = ['preco', 'qAgInMin', 'agent', 'inId', 'outId', 'ag_nome',
 	 'ag_optMobile', 'ag_stat', 'ag_type',
 	 'out_saida', 'out_chegada', 'out_dura', 'out_jMode', 'out_orStat',
-		'out_desStat', 'out_stop1', 'out_stop2', 'out_stop3', 'out_opCarr1',
-		'out_opCarr2', 'out_opCarr3', 'out_carr1', 'out_carr2', 'out_carr3',
+		'out_desStat', 'out_stops', 'out_stop1', 'out_stop2', 'out_stop3',
+		'out_opCarr1','out_opCarr2', 'out_opCarr3', 'out_carr1', 'out_carr2',
+		'out_carr3',
 	 'in_saida', 'in_chegada', 'in_dura', 'in_jMode', 'in_orStat', 'in_desStat',
-		'in_stop1', 'in_stop2', 'in_stop3', 'in_opCarr1', 'in_opCarr2',
-		'in_opCarr3', 'in_carr1', 'in_carr2', 'in_carr3',
+		'in_stops', 'in_stop1', 'in_stop2', 'in_stop3', 'in_opCarr1',
+		'in_opCarr2', 'in_opCarr3', 'in_carr1', 'in_carr2', 'in_carr3',
 	 'ida_or_nome', 'ida_or_tipo', 'ida_dest_nome', 'ida_dest_tipo',
 	 'volta_or_nome', 'volta_or_tipo', 'volta_dest_nome', 'volta_dest_tipo',
 	 'col_year', 'col_mon', 'col_mday', 'col_hour', 'col_min', 'col_sec',
-	  'col_wday', 'col_yday', 'col_isds']
+	 'col_wday', 'col_yday', 'col_isds']
 
 	return df
 
@@ -269,10 +271,11 @@ def data_split(frame, shuffle = False, test_stize = 0.2, test_days = 1):
 	else:
 		frame.sort_values(by=['col_yday'], ascending=[True], inplace = True)
 		days = frame.col_yday.unique()
+		print(days)
 
-
-		test = frame.loc[frame['col_yday'].isin(days[:-test_days])]
-		train = frame.loc[~frame['col_yday'].isin(days[:-test_days])]
+		print(days[-test_days:])
+		test = frame.loc[frame['col_yday'].isin(days[-test_days:])]
+		train = frame.loc[~frame['col_yday'].isin(days[-test_days:])]
 
 	return train, test
 
