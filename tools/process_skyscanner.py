@@ -63,15 +63,24 @@ def json_to_lists(dicio):
 
 	# limpa o itinerário e retira informações irrelevantes
 	for itinerarie in dicio['Itineraries']:
+		p_count = 0
 		for option in itinerarie['PricingOptions']:
 			for agent in option['Agents']:
 				row = []
 				row.append(option['Price']) # add preço
+				p_count += 1 
 				row.append(option['QuoteAgeInMinutes']) # add QAgeInMin
 				row.append(agent)
 				row.append(itinerarie['InboundLegId'])						 
 				row.append(itinerarie['OutboundLegId'])
 				rows.append(row)
+			
+			if p_count > 5:
+				break
+		if p_count > 5:
+				break
+
+
 	# row no formato:
 	# [preço, QAgInMin, Agent, InId, OutId]
 
@@ -142,14 +151,29 @@ def json_to_lists(dicio):
 	# volta_or_nome(45), volta_or_tipo(46), volta_dest_nome(47),
 	#	volta_dest_tipo(48)]
 
-	# limpa os places e adiciona infos relevantes às observações
+	# tempo de coleta e adiciona infos relevantes às observações
 	for row in rows:
-		for t_coleta in dicio['hora_coleta']:
+		t = dicio['hora_coleta']
+		t_col = dt.datetime(t[0], t[1], t[2], t[3], t[4], t[5])
+		row.append(t_col)
+
+		t_ida = time.strptime(row[9], "%Y-%m-%dT%H:%M:%S")
+		t_ida = dt.datetime(*t_ida[0:6])
+		t_delta_ida = t_ida - t_col
+		row.append(t_delta_ida.days)
+
+		t_volta = time.strptime(row[25], "%Y-%m-%dT%H:%M:%S")
+		t_volta = dt.datetime(*t_volta[0:6])
+		dura_viagem = t_volta - t_ida
+		row.append(dura_viagem.days)
+		
+		for t_coleta in dicio['hora_coleta'][6:]:
 			row.append(t_coleta)
+
 	
 	# row no formato:
-	# row + [col_year(49), col_mon(50), col_mday(51), col_hour(52), col_min(53),
-	#	col_sec(54), col_wday(55), col_yday(56), col_isds(57)]
+	# row + [col_time(49), t_delta_ida(50), dura_viagem(51), col_wday(50),
+	# col_yday(51), col_isds(52)]
 	
 	return rows
 
@@ -188,8 +212,8 @@ def process(jsons):
 		'in_opCarr2', 'in_opCarr3', 'in_carr1', 'in_carr2', 'in_carr3',
 	 'ida_or_nome', 'ida_or_tipo', 'ida_dest_nome', 'ida_dest_tipo',
 	 'volta_or_nome', 'volta_or_tipo', 'volta_dest_nome', 'volta_dest_tipo',
-	 'col_year', 'col_mon', 'col_mday', 'col_hour', 'col_min', 'col_sec',
-	 'col_wday', 'col_yday', 'col_isds']
+	 'col_time', 't_delta_ida', 'dura_viagem', 'col_wday', 'col_yday',
+	 'col_isds']
 
 	return df
 
@@ -242,7 +266,6 @@ def load_CSVs(path, var_list, max_files='All', n_days = 5):
 	frame = pd.concat(list_, ignore_index=True)
 		
 	vars_in_frame = frame.columns
-
 	# converte para os tipos certos
 	for var in categ_var:
 		if var in vars_in_frame:
@@ -251,7 +274,6 @@ def load_CSVs(path, var_list, max_files='All', n_days = 5):
 	for var in date_time_var:
 		if var in vars_in_frame:
 			frame[var] = np.array(frame[var], dtype='datetime64')
-
 	return frame
 
 
