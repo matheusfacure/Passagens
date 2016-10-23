@@ -170,10 +170,9 @@ def json_to_lists(dicio):
 		for t_coleta in dicio['hora_coleta'][6:]:
 			row.append(t_coleta)
 
-	
 	# row no formato:
 	# row + [col_time(49), t_delta_ida(50), dura_viagem(51), col_wday(50),
-	# col_yday(51), col_isds(52)]
+	# col_yday(51), col_isds(52)]	
 	
 	return rows
 
@@ -215,14 +214,19 @@ def process(jsons):
 	 'col_time', 't_delta_ida', 'dura_viagem', 'col_wday', 'col_yday',
 	 'col_isds']
 
+	# cira um id da viagem no formato YYYYMMDDHHDurDur 
+	df['vid'] = pd.to_datetime(df['out_saida'], format='%Y-%m-%dT%H:%M:%S')
+	df['vid'] = df['vid'].map(
+		lambda x: 100000000*x.year + 1000000*x.month + 10000*x.day + 100*x.hour)
+	df['vid'] = df['vid'] + df['dura_viagem']
+
 	return df
 
 
 def load_CSVs(path, var_list, max_files='All', n_days = 5):
 	# defensivo
 	if 'col_yday' not in var_list:
-		print('col_yday deve estar na lista de variáveis.')
-		exit(1)
+		var_list.append('col_yday')
 
 	allFiles = glob(path)
 	random.shuffle(allFiles)
@@ -254,9 +258,8 @@ def load_CSVs(path, var_list, max_files='All', n_days = 5):
 			print("Arquivo deve ser uma df no formato csv, sep = ';'")
 			exit(1)
 
-		df = pd.read_csv(file, sep = ';', header=0)
-			
-		df = df[var_list] # seleciona apenas variáveis especificadas
+		df = pd.read_csv(file, sep = ';', header = 0, usecols = var_list)
+	
 			
 		if df.col_yday.unique()[0] not in seen_days:
 			seen_days.append(df.col_yday.unique()[0])
