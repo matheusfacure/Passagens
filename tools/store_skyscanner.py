@@ -60,7 +60,7 @@ class vgns():
 		s += 'Voltas: ' + ' ; '.join(self.voltas) + '\n'
 		return s
 
-def  scrape_skyscanner_vgns(vgns, max_len=7):
+def  scrape_skyscanner_vgns(vgns, max_len=12):
 	json_list = []
 	for origem in vgns.origens:
 		for destino in vgns.destinos:
@@ -104,10 +104,8 @@ if __name__ == '__main__':
 		
 
 	# 1 em 1 dias, curto prazo, apenas viagem padrão
-	fim = comeco + dt.timedelta(days = 60)
+	fim = comeco + dt.timedelta(days = 80)
 	viagens1 = vgns(['BSB'], ['VCP'], comeco, fim, 1)
-
-	print(viagens1)
 
 	# 5 em 5 dias, médio prazo, voos nacionais
 	sigl_aero_nac = ['BSB', 'GIG', 'SSA', 'FLN', 'POA', 'REC', 'CWB', 'BEL',
@@ -123,9 +121,6 @@ if __name__ == '__main__':
 	# coletar viagens
 	viagens_list = [viagens1, viagens2]
 	random.shuffle(viagens_list) # embaralha a lista para evitar vies de coleta
-
-
-
 
 	t_list = []
 	for v in viagens_list:
